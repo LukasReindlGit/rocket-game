@@ -92,7 +92,15 @@
   aspect-ratio: 4 / 5;
   border: 4px solid var(--rocket-ink);
   border-radius: 16px;
-  background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 35%, #bae6fd 70%, var(--rocket-paper) 70%, #fed7aa 100%);
+  background: linear-gradient(
+    180deg,
+    #7dd3fc 0%,
+    #bae6fd 28%,
+    #e0f2fe 55%,
+    var(--rocket-paper) 72%,
+    #fdba74 88%,
+    #fed7aa 100%
+  );
   box-shadow: 8px 8px 0 rgba(15, 23, 42, 0.35);
   overflow: hidden;
 }
@@ -149,22 +157,6 @@
   animation: idle-bob 2.5s ease-in-out infinite;
 }
 
-.rocket-stage--idle .idle-flame-core {
-  animation: idle-core-flicker 0.55s ease-in-out infinite alternate;
-}
-
-.rocket-stage--idle .idle-flame-spark {
-  animation: idle-spark-flicker 0.28s ease-in-out infinite;
-}
-
-.rocket-stage--idle .idle-flame-wisp-l {
-  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate;
-}
-
-.rocket-stage--idle .idle-flame-wisp-r {
-  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate-reverse;
-}
-
 @keyframes idle-core-flicker {
   from {
     opacity: 0.82;
@@ -193,8 +185,38 @@
   }
 }
 
+@keyframes meh-flame-sway {
+  from {
+    transform: scaleY(0.92) rotate(-2deg);
+  }
+  to {
+    transform: scaleY(1.08) rotate(2deg);
+  }
+}
+
+/* Meh: hide exhaust while rocket is near apex (sync with meh-wobble 3.2s) */
+@keyframes meh-flame-apex {
+  0%,
+  12% {
+    opacity: 1;
+    visibility: visible;
+  }
+  50%,
+  75% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  76%,
+  100% {
+    opacity: 1;
+    visibility: hidden;
+  }
+}
+
+/* Idle: no visible flame (only fumes) */
 .rocket-stage--idle .idle-flame {
-  opacity: 0.35;
+  visibility: hidden;
+  opacity: 0;
 }
 
 @keyframes fume-pulse {
@@ -355,9 +377,31 @@
   }
 }
 
-/* Meh */
+/* Meh: small animated flame; plume off near top of arc */
 .rocket-stage--meh .idle-flame {
-  opacity: 0.5;
+  visibility: visible;
+  opacity: 1;
+  transform-origin: top center;
+  transform-box: fill-box;
+  animation:
+    meh-flame-sway 0.5s ease-in-out infinite alternate,
+    meh-flame-apex 3.2s ease-in-out forwards;
+}
+
+.rocket-stage--meh .idle-flame-core {
+  animation: idle-core-flicker 0.55s ease-in-out infinite alternate;
+}
+
+.rocket-stage--meh .idle-flame-spark {
+  animation: idle-spark-flicker 0.28s ease-in-out infinite;
+}
+
+.rocket-stage--meh .idle-flame-wisp-l {
+  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate;
+}
+
+.rocket-stage--meh .idle-flame-wisp-r {
+  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate-reverse;
 }
 
 .rocket-stage--meh .rocket-group {
@@ -374,18 +418,19 @@
   animation: meh-fume 3.2s ease-in-out forwards;
 }
 
+/* Classic small hop (~35–42px); slightly higher than first version (~+5px) */
 @keyframes meh-wobble {
   0% {
     transform: translate(0, 0) rotate(0deg);
   }
   18% {
-    transform: translate(0, -35px) rotate(-4deg);
+    transform: translate(0, -170px) rotate(-4deg);
   }
   35% {
-    transform: translate(0, -42px) rotate(3deg);
+    transform: translate(0, -178px) rotate(3deg);
   }
   55% {
-    transform: translate(0, -38px) rotate(-6deg);
+    transform: translate(0, -173px) rotate(-6deg);
   }
   75% {
     transform: translate(0, 15px) rotate(5deg);
@@ -421,69 +466,110 @@
   }
 }
 
-/* Failure */
+/* Failure: big ignition burst, then crash */
 .rocket-stage--fail .idle-flame {
   opacity: 0;
   visibility: hidden;
 }
 
+.rocket-stage--fail .launch-flame {
+  opacity: 1;
+  visibility: visible;
+  transform-origin: top center;
+  transform-box: fill-box;
+  animation: fail-ignition-burst 3.2s cubic-bezier(0.35, 0.02, 0.28, 1) forwards;
+}
+
 .rocket-stage--fail .fail-burst {
   opacity: 1;
   visibility: visible;
-  animation: fail-smoke 2.6s ease-out forwards;
+  animation: fail-smoke 3.2s ease-out forwards;
 }
 
 .rocket-stage--fail .rocket-group {
-  animation: fail-crash 2.6s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+  animation: fail-crash 3.2s cubic-bezier(0.52, 0.05, 0.55, 0.98) forwards;
 }
 
 .rocket-stage--fail .fume-puff {
-  animation: fail-fume-out 2.6s ease-out forwards;
+  animation: fail-fume-out 3.2s ease-out forwards;
 }
 
 .rocket-stage--fail .crack-lines {
   opacity: 1;
-  animation: crack-show 0.2s ease-out 1.4s both;
+  animation: crack-show 0.28s ease-out 1.78s both;
+}
+
+@keyframes fail-ignition-burst {
+  0% {
+    transform: scaleY(0.2);
+    opacity: 0.95;
+  }
+  12% {
+    transform: scaleY(2.75);
+    opacity: 1;
+  }
+  26% {
+    transform: scaleY(2.35) translateY(10px);
+    opacity: 1;
+  }
+  34% {
+    transform: scaleY(0.45);
+    opacity: 0.25;
+  }
+  40%,
+  100% {
+    transform: scaleY(0.08);
+    opacity: 0;
+  }
 }
 
 @keyframes fail-crash {
   0% {
     transform: translate(0, 0) rotate(0deg);
   }
+  10% {
+    transform: translate(0, -24px) rotate(-11deg);
+  }
   22% {
-    transform: translate(0, -15px) rotate(-8deg);
+    transform: translate(0, -12px) rotate(7deg);
   }
-  45% {
-    transform: translate(25px, 40px) rotate(35deg);
+  32% {
+    transform: translate(4px, 6px) rotate(14deg);
   }
-  70% {
-    transform: translate(10px, 95px) rotate(75deg);
+  44% {
+    transform: translate(22px, 42px) rotate(38deg);
+  }
+  62% {
+    transform: translate(10px, 92px) rotate(74deg);
   }
   100% {
-    transform: translate(-5px, 110px) rotate(95deg);
+    transform: translate(-6px, 112px) rotate(98deg);
   }
 }
 
 @keyframes fail-smoke {
   0%,
-  40% {
+  46% {
     opacity: 0;
-    transform: scale(0.3);
+    transform: scale(0.25);
   }
-  55% {
+  56% {
     opacity: 0.95;
-    transform: scale(1.1);
+    transform: scale(1.12);
   }
   100% {
-    opacity: 0.75;
-    transform: scale(1.35) translateY(-10px);
+    opacity: 0.72;
+    transform: scale(1.38) translateY(-10px);
   }
 }
 
 @keyframes fail-fume-out {
   0%,
-  35% {
-    opacity: 0.6;
+  30% {
+    opacity: 0.65;
+  }
+  38% {
+    opacity: 0.35;
   }
   100% {
     opacity: 0;

@@ -78,11 +78,67 @@
               <stop offset="55%" stop-color="#fde047" />
               <stop offset="100%" stop-color="#f59e0b" />
             </linearGradient>
+            <linearGradient id="rocket-body-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#f8fafc" />
+              <stop offset="45%" stop-color="#e2e8f0" />
+              <stop offset="100%" stop-color="#cbd5e1" />
+            </linearGradient>
+            <linearGradient id="rocket-nose-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#bfdbfe" />
+              <stop offset="100%" stop-color="#60a5fa" />
+            </linearGradient>
           </defs>
+
+          <!-- Distant mountains (behind everything else in scene) -->
+          <g class="scene-mountains" aria-hidden="true">
+            <path
+              d="M -40 420 L 75 248 L 185 420 Z"
+              fill="#94a3b8"
+              stroke="#0f172a"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M 130 420 L 215 268 L 305 420 Z"
+              fill="#cbd5e1"
+              stroke="#0f172a"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M 255 420 L 335 285 L 430 420 Z"
+              fill="#64748b"
+              stroke="#0f172a"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+            />
+          </g>
 
           <!-- Ground -->
           <ellipse cx="200" cy="458" rx="160" ry="18" fill="#f97316" stroke="#0f172a" stroke-width="4" />
           <ellipse cx="200" cy="452" rx="140" ry="10" fill="#fb923c" stroke="#0f172a" stroke-width="3" />
+
+          <!-- Trees on the near strip (in front of ground tint, behind rocket) -->
+          <g class="scene-trees" aria-hidden="true">
+            <g transform="translate(42 432)">
+              <rect x="-3" y="-2" width="6" height="20" rx="1" fill="#57534e" stroke="#0f172a" stroke-width="2" />
+              <path d="M 0 -6 L -20 14 L 20 14 Z" fill="#15803d" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+              <path d="M 0 -18 L -16 4 L 16 4 Z" fill="#16a34a" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+            </g>
+            <g transform="translate(118 438)">
+              <rect x="-3" y="0" width="6" height="16" rx="1" fill="#57534e" stroke="#0f172a" stroke-width="2" />
+              <path d="M 0 -4 L -18 16 L 18 16 Z" fill="#15803d" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+            </g>
+            <g transform="translate(285 434)">
+              <rect x="-3" y="-1" width="6" height="22" rx="1" fill="#57534e" stroke="#0f172a" stroke-width="2" />
+              <path d="M 0 -8 L -22 16 L 22 16 Z" fill="#15803d" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+              <path d="M 0 -20 L -17 2 L 17 2 Z" fill="#16a34a" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+            </g>
+            <g transform="translate(352 440)">
+              <rect x="-2" y="0" width="5" height="14" rx="1" fill="#57534e" stroke="#0f172a" stroke-width="2" />
+              <path d="M 0 -3 L -14 14 L 14 14 Z" fill="#166534" stroke="#0f172a" stroke-width="2" stroke-linejoin="round" />
+            </g>
+          </g>
 
           <!-- Star burst (success); outer g keeps position so inner CSS transform does not wipe translate -->
           <g transform="translate(200 42)">
@@ -172,14 +228,14 @@
             <!-- Fins -->
             <path
               d="M-42 25 L-58 62 L-32 52 Z"
-              fill="#c1121f"
+              fill="#64748b"
               stroke="#0f172a"
               stroke-width="4"
               stroke-linejoin="round"
             />
             <path
               d="M42 25 L58 62 L32 52 Z"
-              fill="#c1121f"
+              fill="#64748b"
               stroke="#0f172a"
               stroke-width="4"
               stroke-linejoin="round"
@@ -188,19 +244,19 @@
             <!-- Body -->
             <path
               d="M-38 52 L-32 -48 Q0 -78 32 -48 L38 52 Q0 62 -38 52 Z"
-              fill="#e63946"
+              fill="url(#rocket-body-grad)"
               stroke="#0f172a"
               stroke-width="4"
               stroke-linejoin="round"
               filter="url(#ink-shadow)"
             />
             <!-- Stripe -->
-            <path d="M-34 8 L34 8" stroke="#0f172a" stroke-width="5" stroke-linecap="round" />
-            <path d="M-34 22 L34 22" stroke="#0f172a" stroke-width="5" stroke-linecap="round" />
+            <path d="M-34 8 L34 8" stroke="#2563eb" stroke-width="5" stroke-linecap="round" />
+            <path d="M-34 22 L34 22" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" />
 
             <!-- Window -->
-            <circle cx="0" cy="-18" r="22" fill="#38bdf8" stroke="#0f172a" stroke-width="4" />
-            <circle cx="6" cy="-24" r="8" fill="rgba(255,255,255,0.5)" />
+            <circle cx="0" cy="-18" r="22" fill="#0ea5e9" stroke="#0f172a" stroke-width="4" />
+            <circle cx="6" cy="-24" r="8" fill="rgba(255,255,255,0.55)" />
 
             <!-- Crack lines (failure) -->
             <g class="crack-lines" opacity="0">
@@ -217,7 +273,7 @@
             <!-- Nose -->
             <path
               d="M-32 -48 Q0 -95 32 -48"
-              fill="#ff6b6b"
+              fill="url(#rocket-nose-grad)"
               stroke="#0f172a"
               stroke-width="4"
               stroke-linejoin="round"
