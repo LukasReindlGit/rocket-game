@@ -9,7 +9,7 @@
   const canvas = document.getElementById("confetti-canvas");
 
   const SCENARIOS = {
-    great: { className: "rocket-stage--great", durationMs: 2800, label: "Great success!" },
+    great: { className: "rocket-stage--great", durationMs: 4700, label: "Great success!" },
     meh: { className: "rocket-stage--meh", durationMs: 3600, label: "Meh!" },
     fail: { className: "rocket-stage--fail", durationMs: 3000, label: "Failure" },
   };

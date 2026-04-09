@@ -149,6 +149,50 @@
   animation: idle-bob 2.5s ease-in-out infinite;
 }
 
+.rocket-stage--idle .idle-flame-core {
+  animation: idle-core-flicker 0.55s ease-in-out infinite alternate;
+}
+
+.rocket-stage--idle .idle-flame-spark {
+  animation: idle-spark-flicker 0.28s ease-in-out infinite;
+}
+
+.rocket-stage--idle .idle-flame-wisp-l {
+  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate;
+}
+
+.rocket-stage--idle .idle-flame-wisp-r {
+  animation: idle-wisp-dance 0.85s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes idle-core-flicker {
+  from {
+    opacity: 0.82;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes idle-spark-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes idle-wisp-dance {
+  from {
+    transform: translateX(-1.5px);
+  }
+  to {
+    transform: translateX(1.5px);
+  }
+}
+
 .rocket-stage--idle .idle-flame {
   opacity: 0.35;
 }
@@ -194,33 +238,77 @@
   visibility: visible;
   transform-origin: top center;
   transform-box: fill-box;
-  animation: launch-flame-burst 2.4s ease-out forwards;
+  animation: launch-flame-burst 4.2s cubic-bezier(0.25, 0.46, 0.2, 1) forwards;
 }
 
 .rocket-stage--great .rocket-group {
-  animation: launch-soar 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation: launch-soar 4.2s cubic-bezier(0.18, 0.58, 0.22, 1) forwards;
 }
 
 .rocket-stage--great .fume-puff {
-  animation: fume-launch 2.4s ease-out forwards;
+  animation: fume-launch 4.2s cubic-bezier(0.25, 0.46, 0.2, 1) forwards;
 }
 
 .rocket-stage--great .star-burst {
-  animation: star-pop 0.5s ease-out 1.8s both;
+  animation: star-pop 0.6s ease-out 2.85s both;
+}
+
+.rocket-stage--great .launch-flame-hot {
+  animation: launch-hot-shimmer 0.22s ease-in-out infinite alternate;
+}
+
+.rocket-stage--great .launch-flame-tongue {
+  animation: launch-tongue-shimmer 0.18s ease-in-out infinite alternate;
+}
+
+.rocket-stage--great .launch-flame-jet-l,
+.rocket-stage--great .launch-flame-jet-r {
+  animation: launch-jet-pulse 0.16s ease-in-out infinite alternate;
+}
+
+@keyframes launch-hot-shimmer {
+  from {
+    opacity: 0.68;
+  }
+  to {
+    opacity: 0.92;
+  }
+}
+
+@keyframes launch-tongue-shimmer {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0.92;
+  }
+}
+
+@keyframes launch-jet-pulse {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 0.98;
+  }
 }
 
 @keyframes launch-flame-burst {
   0% {
-    transform: scaleY(0.4);
-    opacity: 0.9;
+    transform: scaleY(0.35);
+    opacity: 0.92;
   }
-  15% {
-    transform: scaleY(1.4);
+  18% {
+    transform: scaleY(1.35);
     opacity: 1;
   }
+  55% {
+    transform: scaleY(1.95) translateY(8px);
+    opacity: 0.92;
+  }
   100% {
-    transform: scaleY(2.2) translateY(20px);
-    opacity: 0.2;
+    transform: scaleY(2.35) translateY(28px);
+    opacity: 0.18;
   }
 }
 
@@ -228,11 +316,15 @@
   0% {
     transform: translate(0, 0) rotate(0deg);
   }
-  12% {
-    transform: translate(0, 8px) rotate(-2deg);
+  10% {
+    transform: translate(0, 10px) rotate(-3deg);
+  }
+  45% {
+    transform: translate(0, min(-35vh, -320px)) rotate(0deg);
   }
   100% {
-    transform: translate(0, -280px) rotate(0deg);
+    /* Clear the stage and viewport — vh scales with screen; px floor for small viewports */
+    transform: translate(0, min(-125vh, -960px)) rotate(0deg);
   }
 }
 
