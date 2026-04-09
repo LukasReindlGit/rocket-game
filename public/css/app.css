@@ -35,6 +35,10 @@ body {
   margin: 0;
 }
 
+html {
+  background-color: var(--color-bg);
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);
@@ -64,6 +68,11 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: clamp(1rem, 3vw, 2rem);
+}
+
+/* tabindex=-1 + game.js focus() — browser default outline looks like a white frame */
+#app-root:focus {
+  outline: none;
 }
 
 .brand {

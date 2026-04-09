@@ -245,9 +245,14 @@
   animation: none;
 }
 
-.rocket-stage--idle .rocket-group,
-.rocket-stage--ready .rocket-group {
+.rocket-stage--idle .rocket-group {
   animation: idle-bob 2.5s ease-in-out infinite;
+}
+
+.rocket-stage--ready .rocket-group {
+  animation: ready-launch-jitter 0.28s linear infinite;
+  transform-origin: 50% 72%;
+  transform-box: fill-box;
 }
 
 @keyframes idle-core-flicker {
@@ -345,6 +350,31 @@
   }
   50% {
     transform: translateY(-4px);
+  }
+}
+
+/* Ready: rumble / vibration (stronger than idle bob) */
+@keyframes ready-launch-jitter {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  16% {
+    transform: translate(-2.5px, -5px) rotate(-2.2deg);
+  }
+  33% {
+    transform: translate(3px, 2px) rotate(1.8deg);
+  }
+  50% {
+    transform: translate(-2px, 4px) rotate(-1.4deg);
+  }
+  66% {
+    transform: translate(3.5px, -4px) rotate(2.1deg);
+  }
+  83% {
+    transform: translate(-3px, -2px) rotate(-1.6deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
   }
 }
 
