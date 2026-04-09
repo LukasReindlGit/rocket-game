@@ -528,7 +528,12 @@ function tryListen() {
         `Port 3000 is already in use; listening on ${listenPort} instead.`
       );
     }
-    console.log(`Marketing Time Game http://localhost:${listenPort}/game`);
+    const vHost = process.env.VIRTUAL_HOST;
+    const primaryHost = vHost ? vHost.split(",")[0].trim() : "";
+    const gameUrl = primaryHost
+      ? `https://${primaryHost}/game`
+      : `http://localhost:${listenPort}/game`;
+    console.log(`Marketing Time Game ${gameUrl}`);
   });
 }
 
