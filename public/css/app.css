@@ -17,6 +17,18 @@
   box-sizing: border-box;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html,
 body {
   height: 100%;
@@ -111,6 +123,10 @@ body {
   letter-spacing: 0.06em;
 }
 
+.panel h2.sr-only {
+  margin: 0;
+}
+
 .game-stage {
   text-align: center;
   min-height: 280px;
@@ -170,10 +186,26 @@ body {
   font-weight: 700;
   font-size: clamp(1.25rem, 4vw, 1.75rem);
   letter-spacing: 0.04em;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   box-shadow:
     0 8px 0 #7f1d1d,
     0 16px 32px rgba(0, 0, 0, 0.4);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.buzzer-icon {
+  display: block;
+  flex-shrink: 0;
+  opacity: 0.95;
+  filter: brightness(0) invert(1);
+}
+
+.buzzer-label {
+  line-height: 1.1;
 }
 
 .buzzer-btn:active:not(:disabled) {
@@ -191,12 +223,6 @@ body {
 .buzzer-btn:focus-visible {
   outline: 3px solid var(--color-accent);
   outline-offset: 4px;
-}
-
-.kbd-hint {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-  margin-top: 0.75rem;
 }
 
 .result-big {
@@ -228,11 +254,55 @@ body {
   border-radius: 8px;
 }
 
+.survey-caption-wrap {
+  margin: 0.75rem 0 0;
+}
+
+.survey-caption {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.survey-caption:hover {
+  text-decoration: underline;
+}
+
+.survey-caption:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.survey-url-details {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.survey-url-details summary {
+  cursor: pointer;
+  color: var(--color-muted);
+}
+
 .survey-url {
   font-size: 0.8rem;
   color: var(--color-muted);
   word-break: break-all;
+  margin: 0.5rem 0 0;
+}
+
+.survey-error {
+  font-size: 0.9rem;
+  color: #f87171;
   margin: 0.75rem 0 0;
+}
+
+.survey-fallback-msg {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
 .actions {

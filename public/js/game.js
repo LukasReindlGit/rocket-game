@@ -16,12 +16,15 @@ const el = {
   hint: document.getElementById("state-hint"),
   runningVisual: document.getElementById("running-visual"),
   buzzer: document.getElementById("buzzer-btn"),
-  kbdHint: document.getElementById("kbd-hint"),
+  buzzerLabel: document.getElementById("buzzer-label"),
   resultBlock: document.getElementById("result-block"),
   resultDelta: document.getElementById("result-delta"),
   resultElapsed: document.getElementById("result-elapsed"),
   qrHost: document.getElementById("qr-host"),
-  surveyUrl: document.getElementById("survey-url"),
+  surveyLink: document.getElementById("survey-link"),
+  surveyUrlDetails: document.getElementById("survey-url-details"),
+  surveyUrlFull: document.getElementById("survey-url-full"),
+  surveyError: document.getElementById("survey-error"),
   btnAgain: document.getElementById("btn-again"),
   lbEmpty: document.getElementById("leaderboard-empty"),
   lbList: document.getElementById("leaderboard-list"),
@@ -38,17 +41,16 @@ function render() {
   el.buzzer.disabled = state === "postPlay";
 
   if (state === "idle") {
-    el.buzzer.textContent = "START";
-    el.hint.innerHTML =
-      "Erster Druck <strong>startet</strong> die Zeit (unsichtbar). Zweiter Druck <strong>stoppt</strong>.";
-    el.kbdHint.textContent = "Leertaste · Enter · oder Buzzer";
+    el.buzzerLabel.textContent = "START";
+    el.buzzer.setAttribute("aria-label", "Starten");
+    el.hint.textContent = "Zwei Drücke: Start, dann Stopp.";
   } else if (state === "running") {
-    el.buzzer.textContent = "STOP";
+    el.buzzerLabel.textContent = "STOP";
+    el.buzzer.setAttribute("aria-label", "Stoppen");
     el.hint.textContent = "Zähle mit …";
-    el.kbdHint.textContent = "";
   } else {
+    el.buzzer.setAttribute("aria-label", "Runde beendet");
     el.hint.textContent = "Scanne den QR-Code für die Bestenliste.";
-    el.kbdHint.textContent = "„Nochmal spielen“ zum nächsten Versuch.";
   }
 }
 
@@ -73,15 +75,25 @@ function onBuzzerAction(fromKeyboard) {
     lastScoreMs = Math.round(Math.abs(elapsed - TARGET_MS));
     setState("postPlay");
     el.resultDelta.textContent = `${lastScoreMs} ms daneben`;
-    el.resultElapsed.textContent = `Gestoppt bei ${(elapsed / 1000).toFixed(3)} s (Ziel: 10,000 s)`;
+    el.resultElapsed.textContent = `Gestoppt bei ${(elapsed / 1000).toFixed(3)} s`;
     showQrForScore(lastScoreMs, Math.round(elapsed));
     queueMicrotask(() => el.btnAgain.focus({ preventScroll: true }));
     return;
   }
 }
 
+function resetSurveyUi() {
+  el.surveyLink.hidden = true;
+  el.surveyLink.href = "#";
+  el.surveyUrlDetails.hidden = true;
+  el.surveyUrlFull.textContent = "";
+  el.surveyError.hidden = true;
+  el.surveyError.textContent = "";
+}
+
 async function showQrForScore(scoreMs, elapsedRounded) {
   el.qrHost.replaceChildren();
+  resetSurveyUi();
   const base = `${window.location.origin}/survey`;
   let token;
   try {
@@ -99,13 +111,17 @@ async function showQrForScore(scoreMs, elapsedRounded) {
     }
     token = data.token;
   } catch {
-    el.surveyUrl.textContent =
+    el.surveyError.textContent =
       "Ergebnis konnte nicht signiert werden — bitte Seite neu laden und erneut spielen.";
+    el.surveyError.hidden = false;
     return;
   }
   const params = new URLSearchParams({ t: token });
   const url = `${base}?${params.toString()}`;
-  el.surveyUrl.textContent = url;
+  el.surveyLink.href = url;
+  el.surveyLink.hidden = false;
+  el.surveyUrlFull.textContent = url;
+  el.surveyUrlDetails.hidden = false;
 
   const img = document.createElement("img");
   img.width = 240;
@@ -115,9 +131,10 @@ async function showQrForScore(scoreMs, elapsedRounded) {
   img.addEventListener("error", () => {
     el.qrHost.replaceChildren();
     const p = document.createElement("p");
-    p.className = "survey-url";
-    p.textContent = "QR konnte nicht geladen werden — URL steht unten.";
+    p.className = "survey-fallback-msg";
+    p.textContent = "QR konnte nicht geladen werden — Link unten öffnen.";
     el.qrHost.appendChild(p);
+    el.surveyUrlDetails.open = true;
   });
   el.qrHost.appendChild(img);
 }
@@ -136,7 +153,7 @@ el.buzzer.addEventListener("click", () => onBuzzerAction(false));
 el.btnAgain.addEventListener("click", () => {
   setState("idle");
   el.qrHost.replaceChildren();
-  el.surveyUrl.textContent = "";
+  resetSurveyUi();
 });
 
 window.addEventListener("keydown", onKeyDown);
