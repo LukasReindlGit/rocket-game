@@ -57,6 +57,23 @@
   const btnFail = document.getElementById("btn-fail");
   const canvas = document.getElementById("confetti-canvas");
 
+  /**
+   * Global `confetti()` ignores a custom `canvas` option; it always uses an internal
+   * full-page canvas. Bind to our stage canvas via `create` (see canvas-confetti docs).
+   */
+  function getStageConfetti() {
+    if (typeof confetti !== "function" || !canvas || typeof confetti.create !== "function") {
+      return null;
+    }
+    if (!window.__rocketStageConfetti) {
+      window.__rocketStageConfetti = confetti.create(canvas, {
+        resize: false,
+        useWorker: false,
+      });
+    }
+    return window.__rocketStageConfetti;
+  }
+
   const SCENARIOS = {
     great: { className: "rocket-stage--great", durationMs: 4700, label: "Great success!" },
     meh: { className: "rocket-stage--meh", durationMs: 3600, label: "Meh!" },
@@ -80,15 +97,16 @@
   }
 
   function fireConfetti() {
-    if (typeof confetti !== "function" || !canvas) return;
-    const rect = stage.getBoundingClientRect();
+    const burst = getStageConfetti();
+    if (typeof burst !== "function") return;
+    resizeCanvas();
     const x = 0.5;
     const y = 0.28;
     const confettiColors =
       Array.isArray(window.__rocketConfettiColors) && window.__rocketConfettiColors.length > 0
         ? window.__rocketConfettiColors
         : DEFAULT_CONFETTI_COLORS;
-    confetti({
+    burst({
       particleCount: 140,
       spread: 75,
       origin: { x, y },
@@ -96,26 +114,25 @@
       gravity: 0.95,
       scalar: 1.05,
       colors: confettiColors,
-      canvas,
     });
     setTimeout(() => {
-      confetti({
+      burst({
         particleCount: 60,
         angle: 60,
         spread: 55,
         origin: { x: x - 0.12, y: y + 0.05 },
         ticks: 180,
-        canvas,
+        colors: confettiColors,
       });
     }, 180);
     setTimeout(() => {
-      confetti({
+      burst({
         particleCount: 60,
         angle: 120,
         spread: 55,
         origin: { x: x + 0.12, y: y + 0.05 },
         ticks: 180,
-        canvas,
+        colors: confettiColors,
       });
     }, 320);
   }
