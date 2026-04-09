@@ -1,22 +1,4 @@
-/* Rocket page — backgrounds only (viewport mesh + stage scene). Adjust variables here. */
-
-body.page-rocket {
-  --rocket-bg-base: #0f172a;
-  --rocket-bg-mesh: url("/content/images/bg-mesh.svg");
-  --rocket-bg-mesh-opacity: 0.85;
-
-  /* Horizon / ground strip inside the rocket frame */
-  --rocket-paper: #fff8f0;
-  --rocket-stage-scene: linear-gradient(
-    180deg,
-    #7dd3fc 0%,
-    #bae6fd 28%,
-    #e0f2fe 55%,
-    var(--rocket-paper) 72%,
-    #fdba74 88%,
-    #fed7aa 100%
-  );
-}
+/* Rocket page — viewport mesh + stage fill (palette: rocket-theme.css + data/rocket-colors.csv). */
 
 body.page-rocket .app-bg::before {
   content: "";
@@ -31,7 +13,7 @@ body.page-rocket .app-bg::before {
 }
 
 body.page-rocket .app-bg {
-  background: var(--rocket-bg-base);
+  background: var(--rocket-page-background);
 }
 
 .rocket-stage-wrap {

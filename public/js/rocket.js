@@ -1,6 +1,55 @@
 "use strict";
 
 (function () {
+  const DEFAULT_CONFETTI_COLORS = [
+    "#fde047",
+    "#4ade80",
+    "#38bdf8",
+    "#f472b6",
+    "#a78bfa",
+    "#fb923c",
+  ];
+
+  /**
+   * @param {Record<string, string>} colors
+   */
+  function applyRocketColors(colors) {
+    const body = document.body;
+    if (!body || !colors) return;
+    for (const [key, raw] of Object.entries(colors)) {
+      if (raw == null || String(raw).trim() === "") continue;
+      const val = String(raw).trim();
+      if (key === "mesh_url") {
+        body.style.setProperty("--rocket-bg-mesh", `url("${val}")`);
+        continue;
+      }
+      if (key === "confetti_colors") {
+        window.__rocketConfettiColors = val
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        continue;
+      }
+      const cssName = "--rocket-" + key.replace(/_/g, "-");
+      body.style.setProperty(cssName, val);
+    }
+  }
+
+  async function loadRocketColors() {
+    try {
+      const r = await fetch("/api/rocket-colors");
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && data.colors && typeof data.colors === "object") {
+        applyRocketColors(data.colors);
+      }
+    } catch {
+      /* keep rocket-theme.css defaults */
+    }
+  }
+
+  loadRocketColors();
+
   const stage = document.getElementById("rocket-stage");
   const statusEl = document.getElementById("rocket-status");
   const btnGreat = document.getElementById("btn-great");
@@ -35,6 +84,10 @@
     const rect = stage.getBoundingClientRect();
     const x = 0.5;
     const y = 0.28;
+    const confettiColors =
+      Array.isArray(window.__rocketConfettiColors) && window.__rocketConfettiColors.length > 0
+        ? window.__rocketConfettiColors
+        : DEFAULT_CONFETTI_COLORS;
     confetti({
       particleCount: 140,
       spread: 75,
@@ -42,7 +95,7 @@
       ticks: 220,
       gravity: 0.95,
       scalar: 1.05,
-      colors: ["#fde047", "#4ade80", "#38bdf8", "#f472b6", "#a78bfa", "#fb923c"],
+      colors: confettiColors,
       canvas,
     });
     setTimeout(() => {

@@ -343,6 +343,39 @@ app.get("/rocket", (_req, res) => {
   res.sendFile(path.join(PUBLIC, "rocket.html"));
 });
 
+const ROCKET_COLORS_PATH = path.join(ROOT, "data", "rocket-colors.csv");
+
+/**
+ * @returns {Record<string, string>}
+ */
+function readRocketColors() {
+  if (!fs.existsSync(ROCKET_COLORS_PATH)) return {};
+  const raw = fs.readFileSync(ROCKET_COLORS_PATH, "utf8");
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return {};
+  const header = parseCSVLine(lines[0]);
+  const iKey = header.indexOf("key");
+  const iVal = header.indexOf("value");
+  if (iKey < 0 || iVal < 0) return {};
+  const out = {};
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const k = cols[iKey]?.trim();
+    if (!k) continue;
+    out[k] = (cols[iVal] ?? "").trim();
+  }
+  return out;
+}
+
+app.get("/api/rocket-colors", (_req, res) => {
+  try {
+    res.json({ colors: readRocketColors() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "rocket_colors_read_failed" });
+  }
+});
+
 /**
  * Mint a signed survey URL token (score not readable without server secret).
  */

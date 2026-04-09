@@ -1,0 +1,100 @@
+/* Default rocket palette — overridden at runtime from /data/rocket-colors.csv via /api/rocket-colors */
+
+body.page-rocket {
+  --rocket-page-background: #0f172a;
+  --rocket-bg-mesh: url("/content/images/bg-mesh.svg");
+  --rocket-bg-mesh-opacity: 0.85;
+
+  --rocket-stage-sky-1: #7dd3fc;
+  --rocket-stage-sky-2: #bae6fd;
+  --rocket-stage-sky-3: #e0f2fe;
+  --rocket-stage-sky-4: #f0fdf4;
+  --rocket-stage-field-mid: #ecfccb;
+  --rocket-stage-field: #dcfce7;
+  --rocket-stage-scene: linear-gradient(
+    180deg,
+    var(--rocket-stage-sky-1) 0%,
+    var(--rocket-stage-sky-2) 28%,
+    var(--rocket-stage-sky-3) 55%,
+    var(--rocket-stage-sky-4) 68%,
+    var(--rocket-stage-field-mid) 82%,
+    var(--rocket-stage-field) 100%
+  );
+  --rocket-stage-box-shadow: 8px 8px 0 rgba(15, 23, 42, 0.35);
+
+  --rocket-mountain-1: #94a3b8;
+  --rocket-mountain-2: #cbd5e1;
+  --rocket-mountain-3: #64748b;
+  --rocket-launchpad-outer: #bbf7d0;
+  --rocket-launchpad-inner: #dcfce7;
+  --rocket-tree-trunk: #57534e;
+  --rocket-tree-foliage-1: #15803d;
+  --rocket-tree-foliage-2: #16a34a;
+  --rocket-tree-foliage-dark: #166534;
+
+  --rocket-star-points: #fde047;
+  --rocket-star-center: #fef08a;
+
+  --rocket-fume-1: #cbd5e1;
+  --rocket-fume-2: #e2e8f0;
+  --rocket-fume-3: #94a3b8;
+
+  --rocket-fail-smoke-1: #64748b;
+  --rocket-fail-smoke-2: #94a3b8;
+  --rocket-fail-smoke-3: #475569;
+  --rocket-fail-text-fill: #0f172a;
+  --rocket-fail-text-stroke: #ffffff;
+
+  --rocket-fin: #64748b;
+  --rocket-stripe-1: #2563eb;
+  --rocket-stripe-2: #1d4ed8;
+  --rocket-window: #0ea5e9;
+  --rocket-window-glare: rgba(255, 255, 255, 0.55);
+  --rocket-ink: #0f172a;
+
+  --rocket-idle-flame-rad-0: #fffbeb;
+  --rocket-idle-flame-rad-35: #fde68a;
+  --rocket-idle-flame-rad-70: #f59e0b;
+  --rocket-idle-flame-rad-100: #c2410c;
+  --rocket-idle-flame-body-0: #fff7ed;
+  --rocket-idle-flame-body-40: #fcd34d;
+  --rocket-idle-flame-body-100: #ea580c;
+
+  --rocket-launch-flame-outer-0: #fffbeb;
+  --rocket-launch-flame-outer-12: #fef08a;
+  --rocket-launch-flame-outer-35: #fb923c;
+  --rocket-launch-flame-outer-58: #ea580c;
+  --rocket-launch-flame-outer-82: #c2410c;
+  --rocket-launch-flame-outer-100: #7c2d12;
+  --rocket-launch-flame-mid-0: #fef9c3;
+  --rocket-launch-flame-mid-30: #fbbf24;
+  --rocket-launch-flame-mid-65: #f97316;
+  --rocket-launch-flame-mid-100: #dc2626;
+  --rocket-launch-flame-core-0: #ffffff;
+  --rocket-launch-flame-core-22: #fef9c3;
+  --rocket-launch-flame-core-55: #fde047;
+  --rocket-launch-flame-core-100: #f59e0b;
+
+  --rocket-body-0: #f8fafc;
+  --rocket-body-45: #e2e8f0;
+  --rocket-body-100: #cbd5e1;
+  --rocket-nose-0: #bfdbfe;
+  --rocket-nose-100: #60a5fa;
+
+  --rocket-idle-flame-core-fill: #fffbeb;
+  --rocket-idle-flame-spark: #fbbf24;
+  --rocket-launch-flame-jet: #ea580c;
+  --rocket-launch-flame-hot: #ffffff;
+  --rocket-launch-flame-tongue: #fde047;
+  --rocket-meh-sweat: #38bdf8;
+
+  --rocket-btn-great-a: #86efac;
+  --rocket-btn-great-b: #4ade80;
+  --rocket-btn-meh-a: #fde68a;
+  --rocket-btn-meh-b: #fbbf24;
+  --rocket-btn-fail-a: #fca5a5;
+  --rocket-btn-fail-b: #f87171;
+
+  --rocket-api-hint-bg: rgba(30, 41, 59, 0.6);
+  --rocket-api-hint-code: #7dd3fc;
+}
