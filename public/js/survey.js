@@ -46,6 +46,7 @@ el.form.addEventListener("submit", async (e) => {
   el.msgSuccess.hidden = true;
 
   const token = el.fieldToken.value.trim();
+  const nickname = document.getElementById("field-nickname").value.trim();
   const vorname = document.getElementById("field-vorname").value.trim();
   const nachname = document.getElementById("field-nachname").value.trim();
   const company = document.getElementById("field-company").value.trim();
@@ -65,6 +66,7 @@ el.form.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token,
+        nickname,
         vorname,
         nachname,
         company,
@@ -75,7 +77,7 @@ el.form.addEventListener("submit", async (e) => {
     if (!res.ok) {
       el.msgError.textContent =
         data.error === "name_fields_required"
-          ? "Vorname, Nachname, Unternehmen und E-Mail sind Pflichtfelder."
+          ? "Nickname, Vorname, Nachname, Unternehmen und E-Mail sind Pflichtfelder."
           : data.error === "invalid_email"
             ? "Bitte gültige E-Mail eingeben."
             : data.error === "invalid_or_expired_token"

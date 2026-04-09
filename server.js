@@ -40,13 +40,55 @@ function ensureDataFile() {
   if (!fs.existsSync(DATA_PATH)) {
     fs.writeFileSync(
       DATA_PATH,
-      "submitted_at,vorname,nachname,company,email,score_ms,elapsed_ms\n",
+      "submitted_at,nickname,vorname,nachname,company,email,score_ms,elapsed_ms\n",
       "utf8"
     );
     return;
   }
   migrateLeaderboardCsvIfNeeded();
   migrateEmailColumnIfNeeded();
+  migrateNicknameColumnIfNeeded();
+}
+
+/** Adds `nickname` column after `submitted_at` when missing. */
+function migrateNicknameColumnIfNeeded() {
+  const raw = fs.readFileSync(DATA_PATH, "utf8");
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return;
+  const header = parseCSVLine(lines[0]);
+  if (header.includes("nickname")) return;
+  if (!header.includes("vorname")) return;
+
+  const newHeader =
+    "submitted_at,nickname,vorname,nachname,company,email,score_ms,elapsed_ms";
+  const out = [newHeader];
+  const idx = (name) => header.indexOf(name);
+  const iSub = idx("submitted_at");
+  const iVor = idx("vorname");
+  const iNach = idx("nachname");
+  const iComp = idx("company");
+  const iEmail = idx("email");
+  const iScore = idx("score_ms");
+  const iEl = idx("elapsed_ms");
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const get = (j) => (j >= 0 ? cols[j] ?? "" : "");
+    out.push(
+      [
+        get(iSub),
+        "",
+        get(iVor),
+        get(iNach),
+        get(iComp),
+        get(iEmail),
+        get(iScore),
+        get(iEl),
+      ]
+        .map(csvEscape)
+        .join(",")
+    );
+  }
+  fs.writeFileSync(DATA_PATH, out.join("\n") + "\n", "utf8");
 }
 
 function migrateLeaderboardCsvIfNeeded() {
@@ -278,6 +320,7 @@ function appendRow(row) {
   const line =
     [
       row.submitted_at,
+      row.nickname,
       row.vorname,
       row.nachname,
       row.company,
@@ -314,7 +357,7 @@ app.get("/api/qr", (req, res) => {
   }
   QRCode.toBuffer(
     text,
-    { width: 240, margin: 2, errorCorrectionLevel: "M", color: { dark: "#0f172a", light: "#ffffff" } },
+    { width: 480, margin: 2, errorCorrectionLevel: "M", color: { dark: "#0f172a", light: "#ffffff" } },
     (err, buf) => {
       if (err || !buf) {
         console.error(err);
@@ -398,6 +441,7 @@ app.get("/api/leaderboard", (_req, res) => {
 app.post("/api/submit", (req, res) => {
   const body = req.body || {};
   const token = String(body.token ?? "").trim();
+  const nickname = String(body.nickname ?? "").trim().slice(0, 40);
   const vorname = String(body.vorname ?? "").trim().slice(0, 120);
   const nachname = String(body.nachname ?? "").trim().slice(0, 120);
   const company = String(body.company ?? "").trim().slice(0, 200);
@@ -409,7 +453,7 @@ app.post("/api/submit", (req, res) => {
   }
   const { score_ms, elapsed_ms } = verified;
 
-  if (!vorname || !nachname || !company || !email) {
+  if (!nickname || !vorname || !nachname || !company || !email) {
     return res.status(400).json({ error: "name_fields_required" });
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -420,6 +464,7 @@ app.post("/api/submit", (req, res) => {
   try {
     appendRow({
       submitted_at,
+      nickname,
       vorname,
       nachname,
       company,

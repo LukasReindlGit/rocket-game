@@ -2,7 +2,7 @@
 
 body.page-rocket,
 body.game-page {
-  --rocket-page-background: #0f172a;
+  --rocket-page-background: #000058;
   --rocket-bg-mesh: url("/content/images/bg-mesh.svg");
   --rocket-bg-mesh-opacity: 0.85;
 

@@ -1,5 +1,5 @@
 :root {
-  --color-bg: #0f172a;
+  --color-bg: #000058;
   --color-surface: #1e293b;
   --color-border: #334155;
   --color-text: #f8fafc;
@@ -101,6 +101,44 @@ body {
   color: var(--color-muted);
 }
 
+/* Survey / form page — mobile-first */
+body.survey-page {
+  /* Avoid horizontal rubber-banding on narrow phones while scrolling the form */
+  overflow-x: hidden;
+}
+
+body.survey-page .shell {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+body.survey-page .brand--survey {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+body.survey-page .brand--survey img {
+  flex-shrink: 0;
+  height: clamp(36px, 9vw, 48px);
+  width: auto;
+}
+
+body.survey-page .brand__titles {
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  body.survey-page .brand--survey {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+}
+
 .layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -115,6 +153,11 @@ body {
 body.game-page {
   --game-side-card: minmax(260px, min(42vw, 400px));
   --game-rocket-frame-w: 800px;
+}
+
+body.game-page .brand {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 body.game-page .layout .panel {
@@ -249,23 +292,23 @@ body.game-page .layout .panel {
   appearance: none;
   border: none;
   cursor: pointer;
-  width: min(220px, 70vw);
-  height: min(220px, 70vw);
+  width: min(440px, min(95vw, 90vh));
+  height: min(440px, min(95vw, 90vh));
   border-radius: 50%;
   background: linear-gradient(165deg, #ef4444 0%, #b91c1c 100%);
   color: white;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
   letter-spacing: 0.04em;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   box-shadow:
-    0 8px 0 #7f1d1d,
-    0 16px 32px rgba(0, 0, 0, 0.4);
+    0 16px 0 #7f1d1d,
+    0 24px 48px rgba(0, 0, 0, 0.4);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
@@ -281,10 +324,10 @@ body.game-page .layout .panel {
 }
 
 .buzzer-btn:active:not(:disabled) {
-  transform: translateY(4px);
+  transform: translateY(8px);
   box-shadow:
-    0 4px 0 #7f1d1d,
-    0 8px 16px rgba(0, 0, 0, 0.35);
+    0 8px 0 #7f1d1d,
+    0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
 .buzzer-btn:disabled {
@@ -324,6 +367,13 @@ body.game-page .layout .panel {
   display: block;
   margin: 0 auto;
   border-radius: 8px;
+}
+
+.qr-block img {
+  display: block;
+  margin: 0 auto;
+  max-width: min(480px, 92vw);
+  height: auto;
 }
 
 .survey-caption-wrap {
@@ -411,6 +461,34 @@ body.game-page .layout .panel {
   font-size: 0.95rem;
 }
 
+body.game-page .leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  scrollbar-width: thin;
+}
+
+body.game-page .leaderboard h2 {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+body.game-page #leaderboard-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(50vh, 460px);
+  max-height: min(50svh, 460px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+body.game-page .leaderboard li {
+  padding: 0.35rem 0;
+  font-size: 0.88rem;
+}
+
 .leaderboard ol {
   margin: 0;
   padding: 0;
@@ -456,6 +534,17 @@ body.game-page .layout .panel {
 .survey-main {
   max-width: 480px;
   margin: 0 auto;
+  width: 100%;
+}
+
+body.survey-page .survey-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+body.survey-page .survey-form .form-group {
+  margin-bottom: 0;
 }
 
 .form-group {
@@ -469,14 +558,29 @@ body.game-page .layout .panel {
   margin-bottom: 0.35rem;
 }
 
+body.survey-page .form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.4rem;
+}
+
 .form-group input {
   width: 100%;
   padding: 0.65rem 0.75rem;
   border-radius: 10px;
   border: 1px solid var(--color-border);
-  background: #0f172a;
+  background: var(--color-bg);
   color: var(--color-text);
   font-size: 1rem;
+}
+
+/* 16px+ avoids iOS zooming inputs on focus */
+body.survey-page .form-group input {
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .form-group input:focus {
@@ -504,6 +608,14 @@ body.game-page .layout .panel {
   font-size: 1.25rem;
 }
 
+body.survey-page .score-banner {
+  padding: 1rem 1.1rem;
+}
+
+body.survey-page .score-banner p {
+  line-height: 1.45;
+}
+
 .btn-primary {
   appearance: none;
   border: none;
@@ -519,8 +631,20 @@ body.game-page .layout .panel {
   margin-top: 0.5rem;
 }
 
+.btn-primary--survey {
+  min-height: 52px;
+  margin-top: 0.25rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .btn-primary:hover {
   filter: brightness(1.05);
+}
+
+.btn-primary--survey:active:not(:disabled) {
+  filter: brightness(0.96);
+  transform: translateY(1px);
 }
 
 .btn-primary:disabled {
@@ -532,6 +656,12 @@ body.game-page .layout .panel {
   font-size: 0.8rem;
   color: var(--color-muted);
   margin-top: 1rem;
+}
+
+body.survey-page .form-footnote {
+  line-height: 1.5;
+  margin-top: 1.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .form-footnote a {
@@ -643,7 +773,6 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
     flex-direction: row;
     align-items: center;
     gap: 0.65rem;
-    margin-bottom: 0.45rem;
   }
 
   body.game-page .brand img {
@@ -673,8 +802,13 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
     body.game-page .leaderboard {
       max-height: calc(100vh - 4.5rem);
       max-height: calc(100dvh - 4.5rem);
-      overflow-y: auto;
+      overflow: hidden;
       align-self: stretch;
+    }
+
+    body.game-page #leaderboard-list {
+      max-height: none;
+      flex: 1 1 auto;
     }
 
     body.game-page .panel {
@@ -719,28 +853,31 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
   /* Narrow landscape: leaderboard stays short so the page does not grow past the viewport */
   @media (max-width: 679px) {
     body.game-page .leaderboard {
-      max-height: min(30vh, 200px);
-      max-height: min(30dvh, 200px);
-      overflow-y: auto;
+      max-height: min(42dvh, 320px);
+      overflow: hidden;
       padding: 0.65rem 0.85rem;
       font-size: 0.88rem;
     }
 
+    body.game-page #leaderboard-list {
+      max-height: none;
+    }
+
     body.game-page .leaderboard h2 {
       font-size: 0.75rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0;
     }
   }
 
   body.game-page .game-panel--controls .buzzer-btn {
-    width: min(120px, 26vmin);
-    height: min(120px, 26vmin);
-    font-size: clamp(0.95rem, 2.5vmin, 1.15rem);
+    width: min(240px, 52vmin);
+    height: min(240px, 52vmin);
+    font-size: clamp(1rem, 4.8vmin, 1.85rem);
   }
 
   body.game-page .game-panel--controls .buzzer-icon {
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
   }
 
   body.game-page .game-panel--result .result-big {
@@ -757,7 +894,7 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
   }
 
   body.game-page .game-panel--result #qr-host img {
-    max-width: min(160px, 32vmin);
+    max-width: min(360px, 58vmin);
     width: auto !important;
     height: auto !important;
   }

@@ -2,7 +2,10 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>Teilnahme — 10 Sekunden Challenge</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -12,20 +15,25 @@
     />
     <link rel="stylesheet" href="/css/app.css" />
   </head>
-  <body>
+  <body class="survey-page">
     <div class="app-bg" aria-hidden="true">
       <img src="/content/images/bg-mesh.svg" alt="" />
     </div>
     <div class="shell">
-      <header class="brand">
-        <img src="/content/images/logo-placeholder.svg" alt="Salesfive" width="160" height="40" />
-        <div>
+      <header class="brand brand--survey">
+        <img
+          src="/content/logos/Salesfive-logo-rgb-full-white.svg"
+          alt="Salesfive"
+          width="254"
+          height="40"
+        />
+        <div class="brand__titles">
           <h1>Eintragen</h1>
           <p>Für die Bestenliste</p>
         </div>
       </header>
 
-      <main class="panel survey-main">
+      <main class="panel survey-main" id="survey-main">
         <div class="score-banner" id="score-banner">
           <p>
             Abstand zu 10&nbsp;s:
@@ -33,9 +41,21 @@
           </p>
         </div>
 
-        <form id="survey-form" novalidate>
+        <form id="survey-form" class="survey-form" novalidate>
           <input type="hidden" id="field-token" />
 
+          <div class="form-group">
+            <label for="field-nickname">Nickname (Bestenliste)</label>
+            <input
+              id="field-nickname"
+              name="nickname"
+              type="text"
+              required
+              maxlength="40"
+              autocomplete="nickname"
+              enterkeyhint="next"
+            />
+          </div>
           <div class="form-group">
             <label for="field-vorname">Vorname</label>
             <input
@@ -45,6 +65,7 @@
               required
               maxlength="120"
               autocomplete="given-name"
+              enterkeyhint="next"
             />
           </div>
           <div class="form-group">
@@ -56,6 +77,7 @@
               required
               maxlength="120"
               autocomplete="family-name"
+              enterkeyhint="next"
             />
           </div>
           <div class="form-group">
@@ -67,6 +89,7 @@
               required
               maxlength="200"
               autocomplete="organization"
+              enterkeyhint="next"
             />
           </div>
           <div class="form-group">
@@ -78,10 +101,16 @@
               required
               maxlength="320"
               autocomplete="email"
+              inputmode="email"
+              autocapitalize="none"
+              autocorrect="off"
+              enterkeyhint="done"
             />
           </div>
 
-          <button type="submit" class="btn-primary" id="btn-submit">Senden</button>
+          <button type="submit" class="btn-primary btn-primary--survey" id="btn-submit">
+            Senden
+          </button>
           <p class="msg-error" id="msg-error" hidden></p>
           <p class="msg-success" id="msg-success" hidden></p>
         </form>

@@ -226,8 +226,9 @@ async function showQrForScore(scoreMs, elapsedRounded) {
   el.surveyUrlDetails.hidden = false;
 
   const img = document.createElement("img");
-  img.width = 240;
-  img.height = 240;
+  const qrPx = 480;
+  img.width = qrPx;
+  img.height = qrPx;
   img.alt = "QR-Code zum Formular";
   img.src = `/api/qr?u=${encodeURIComponent(url)}`;
   /**
