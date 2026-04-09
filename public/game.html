@@ -29,45 +29,68 @@
       </header>
 
       <div class="layout">
-        <main class="panel">
-          <h2 class="sr-only">Spiel</h2>
-          <div class="game-stage" id="game-stage" aria-live="polite">
-            <p class="state-hint" id="state-hint"></p>
-            <div id="game-rocket-wrap" class="game-rocket-wrap" aria-hidden="true"></div>
-            <div id="running-visual" class="pulse-ring" hidden></div>
-            <div class="buzzer-wrap">
-              <button type="button" class="buzzer-btn" id="buzzer-btn" aria-label="Starten">
-                <img
-                  class="buzzer-icon"
-                  src="/content/images/icon-buzzer.svg"
-                  alt=""
-                  width="56"
-                  height="56"
-                />
-                <span class="buzzer-label" id="buzzer-label">START</span>
-              </button>
-            </div>
-            <div id="result-block" hidden>
-              <p class="result-big" id="result-delta"></p>
-              <p class="result-sub" id="result-elapsed"></p>
-              <p class="game-rocket-caption" id="game-rocket-caption" hidden></p>
-              <div class="qr-block" id="qr-block" hidden>
-                <div id="qr-host"></div>
-                <p class="survey-caption-wrap">
-                  <a class="survey-caption" id="survey-link" href="#" hidden>Zum Formular</a>
-                </p>
-                <details class="survey-url-details" id="survey-url-details" hidden>
-                  <summary>Link anzeigen</summary>
-                  <p class="survey-url" id="survey-url-full"></p>
-                </details>
-                <p class="survey-error" id="survey-error" hidden></p>
+        <main class="game-main">
+          <div class="game-panels">
+            <section
+              class="panel game-panel game-panel--play"
+              aria-labelledby="game-panel-play-title"
+            >
+              <h2 id="game-panel-play-title" class="sr-only">Spiel</h2>
+              <div class="game-stage" id="game-stage" aria-live="polite">
+                <p class="state-hint" id="state-hint"></p>
+                <div id="game-rocket-wrap" class="game-rocket-wrap" aria-hidden="true"></div>
               </div>
-              <div class="actions">
-                <button type="button" class="btn-secondary" id="btn-again">
-                  Nochmal spielen
+            </section>
+
+            <section
+              class="panel game-panel game-panel--controls"
+              id="game-panel-controls"
+              aria-labelledby="game-panel-controls-title"
+            >
+              <h2 id="game-panel-controls-title" class="sr-only">Start und Stopp</h2>
+              <div class="buzzer-wrap">
+                <button type="button" class="buzzer-btn" id="buzzer-btn" aria-label="Starten">
+                  <img
+                    class="buzzer-icon"
+                    src="/content/images/icon-buzzer.svg"
+                    alt=""
+                    width="56"
+                    height="56"
+                  />
+                  <span class="buzzer-label" id="buzzer-label">START</span>
                 </button>
               </div>
-            </div>
+            </section>
+
+            <section
+              class="panel game-panel game-panel--result"
+              id="game-panel-result"
+              hidden
+              aria-labelledby="game-panel-result-title"
+            >
+              <h2 id="game-panel-result-title" class="sr-only">Ergebnis</h2>
+              <div id="result-block">
+                <p class="result-big" id="result-delta"></p>
+                <p class="result-sub" id="result-elapsed"></p>
+                <p class="game-rocket-caption" id="game-rocket-caption" hidden></p>
+                <div class="qr-block" id="qr-block" hidden>
+                  <div id="qr-host"></div>
+                  <p class="survey-caption-wrap">
+                    <a class="survey-caption" id="survey-link" href="#" hidden>Zum Formular</a>
+                  </p>
+                  <details class="survey-url-details" id="survey-url-details" hidden>
+                    <summary>Link anzeigen</summary>
+                    <p class="survey-url" id="survey-url-full"></p>
+                  </details>
+                  <p class="survey-error" id="survey-error" hidden></p>
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn-secondary" id="btn-again">
+                    Nochmal spielen
+                  </button>
+                </div>
+              </div>
+            </section>
           </div>
         </main>
 

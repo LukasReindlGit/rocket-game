@@ -107,6 +107,69 @@ body {
   gap: 1.5rem;
 }
 
+.game-main {
+  min-width: 0;
+}
+
+/* Same track for buzzer card and Ergebnis/QR card (they never show at once) */
+body.game-page {
+  --game-side-card: minmax(260px, min(42vw, 400px));
+}
+
+.game-panels {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+/* Wide layout: rocket | (button card XOR Ergebnis card) — equal width side column */
+@media (min-width: 720px) {
+  body.game-page .game-panels:has(#game-panel-controls:not([hidden])):not(:has(#game-panel-result:not([hidden]))),
+  body.game-page .game-panels:has(#game-panel-result:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr) var(--game-side-card);
+    align-items: stretch;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 560px) {
+  body.game-page {
+    --game-side-card: minmax(220px, min(40vw, 380px));
+  }
+
+  body.game-page .game-panels:has(#game-panel-controls:not([hidden])):not(:has(#game-panel-result:not([hidden]))),
+  body.game-page .game-panels:has(#game-panel-result:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr) var(--game-side-card);
+    align-items: stretch;
+  }
+}
+
+.game-panel--controls,
+.game-panel--result {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.game-panel--controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* `hidden` must win over `display: flex` above (author CSS beats UA [hidden]) */
+#game-panel-controls[hidden] {
+  display: none !important;
+}
+
+.game-panel--controls .buzzer-wrap {
+  margin-top: 0;
+}
+
+.game-panel--result {
+  align-self: start;
+}
+
 @media (min-width: 900px) {
   .layout {
     grid-template-columns: 1fr 320px;
@@ -138,12 +201,20 @@ body {
 
 .game-stage {
   text-align: center;
-  min-height: min(72vh, 720px);
+  min-height: min(52vh, 520px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+}
+
+/* Avoid forcing a tall play area on short viewports (running state overflow) */
+@media (max-height: 720px) {
+  body.game-page .game-stage {
+    min-height: 0;
+    padding-block: 0.25rem;
+  }
 }
 
 .state-hint {
@@ -155,27 +226,6 @@ body {
 
 .state-hint strong {
   color: var(--color-text);
-}
-
-.pulse-ring {
-  width: min(200px, 50vw);
-  height: min(200px, 50vw);
-  border-radius: 50%;
-  border: 3px solid var(--color-accent);
-  animation: pulse 1.25s ease-in-out infinite;
-  opacity: 0.9;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scale(1.06);
-    opacity: 0.85;
-  }
 }
 
 .buzzer-wrap {
@@ -513,9 +563,177 @@ body {
   flex-shrink: 0;
 }
 
+/* Fixed rocket frame size on the game page (no responsive shrinking) */
+body.game-page #game-rocket-wrap {
+  width: var(--game-rocket-frame-w, 300px);
+  max-width: min(var(--game-rocket-frame-w, 300px), 100%);
+  height: auto;
+  aspect-ratio: 4 / 5;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Running: glow on the cockpit window (SVG), replaces pulse ring */
+#game-rocket-wrap .rocket-stage-wrap.rocket-stage--ready {
+  overflow: visible;
+}
+
+#game-rocket-wrap .rocket-stage--ready .rocket-window-shell {
+  animation: rocket-window-glow 1.25s ease-in-out infinite;
+}
+
+@keyframes rocket-window-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgb(14 165 233 / 0.9)) drop-shadow(0 0 10px rgb(14 165 233 / 0.45));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 8px rgb(14 165 233 / 1)) drop-shadow(0 0 20px rgb(14 165 233 / 0.7));
+  }
+}
+
 .rocket-load-error {
   color: var(--color-muted);
   font-size: 0.9rem;
   text-align: center;
   margin: 0;
+}
+
+/* Game page — landscape / short viewports: fit without full-page vertical scroll */
+@media (orientation: landscape) and (max-height: 860px),
+  (max-height: 560px) and (min-width: 480px) {
+  body.game-page {
+    overflow-x: clip;
+  }
+
+  body.game-page .shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: clamp(0.35rem, 1.2vmin, 1rem);
+    box-sizing: border-box;
+  }
+
+  body.game-page .brand {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.45rem;
+  }
+
+  body.game-page .brand img {
+    height: clamp(28px, 6vmin, 42px);
+  }
+
+  body.game-page .brand h1 {
+    font-size: clamp(1rem, 2.2vmin, 1.45rem);
+  }
+
+  body.game-page .brand p {
+    font-size: 0.78rem;
+    margin-top: 0.05rem;
+  }
+
+  body.game-page .layout {
+    gap: 0.65rem;
+    align-items: stretch;
+  }
+
+  /* Side-by-side main column + leaderboard */
+  @media (min-width: 680px) {
+    body.game-page .layout {
+      grid-template-columns: minmax(0, 1fr) minmax(160px, 240px);
+    }
+
+    body.game-page .leaderboard {
+      max-height: calc(100vh - 4.5rem);
+      max-height: calc(100dvh - 4.5rem);
+      overflow-y: auto;
+      align-self: stretch;
+    }
+
+    body.game-page .panel {
+      padding: clamp(0.65rem, 1.5vmin, 1.25rem);
+    }
+  }
+
+  /* Ergebnis card: scroll inside panel if needed */
+  body.game-page .game-panel--result {
+    max-height: calc(100vh - 5rem);
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  body.game-page .game-stage {
+    min-height: 0;
+    gap: 0.4rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.game-page .state-hint {
+    font-size: clamp(0.85rem, 1.8vmin, 1.05rem);
+    max-width: none;
+    margin: 0;
+  }
+
+  /* Same fixed rocket size as base game page (do not shrink in landscape) */
+  body.game-page #game-rocket-wrap {
+    overflow: hidden;
+  }
+
+  body.game-page #game-rocket-wrap .rocket-stage-wrap {
+    width: 100%;
+    height: auto;
+    max-width: none;
+    max-height: none;
+  }
+
+  /* Narrow landscape: leaderboard stays short so the page does not grow past the viewport */
+  @media (max-width: 679px) {
+    body.game-page .leaderboard {
+      max-height: min(30vh, 200px);
+      max-height: min(30dvh, 200px);
+      overflow-y: auto;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.88rem;
+    }
+
+    body.game-page .leaderboard h2 {
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  body.game-page .game-panel--controls .buzzer-btn {
+    width: min(120px, 26vmin);
+    height: min(120px, 26vmin);
+    font-size: clamp(0.95rem, 2.5vmin, 1.15rem);
+  }
+
+  body.game-page .game-panel--controls .buzzer-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  body.game-page .game-panel--result .result-big {
+    font-size: clamp(1.5rem, 4.5vmin, 2.5rem);
+  }
+
+  body.game-page .game-panel--result .result-sub {
+    font-size: 0.9rem;
+  }
+
+  body.game-page .game-panel--result .qr-block {
+    margin-top: 0.5rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  body.game-page .game-panel--result #qr-host img {
+    max-width: min(160px, 32vmin);
+    width: auto !important;
+    height: auto !important;
+  }
 }

@@ -86,9 +86,10 @@ let lastScoreMs = 0;
 const el = {
   root: document.getElementById("app-root"),
   hint: document.getElementById("state-hint"),
-  runningVisual: document.getElementById("running-visual"),
   buzzer: document.getElementById("buzzer-btn"),
   buzzerLabel: document.getElementById("buzzer-label"),
+  controlsPanel: document.getElementById("game-panel-controls"),
+  resultPanel: document.getElementById("game-panel-result"),
   resultBlock: document.getElementById("result-block"),
   resultDelta: document.getElementById("result-delta"),
   resultElapsed: document.getElementById("result-elapsed"),
@@ -109,10 +110,23 @@ function setState(next) {
   render();
 }
 
+/**
+ * Controls card shares the slot with the Ergebnis/QR card: hidden while results are shown.
+ */
+function updateControlsPanelVisibility() {
+  if (!el.controlsPanel) return;
+  el.controlsPanel.hidden = state === "postPlay";
+}
+
 function render() {
-  el.runningVisual.hidden = state !== "running";
-  el.resultBlock.hidden = state !== "postPlay";
+  const showResult = state === "postPlay";
+  if (el.resultPanel) {
+    el.resultPanel.hidden = !showResult;
+  } else {
+    el.resultBlock.hidden = !showResult;
+  }
   el.buzzer.disabled = state === "postPlay";
+  updateControlsPanelVisibility();
 
   if (state === "idle") {
     if (typeof window.resetRocketStage === "function") {
