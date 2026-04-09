@@ -123,20 +123,6 @@
             </g>
           </g>
 
-          <!-- Star burst (success); outer g keeps position so inner CSS transform does not wipe translate -->
-          <g transform="translate(200 42)">
-            <g class="star-burst" opacity="0">
-              <path
-                d="M0 -28 L6 -8 L26 -8 L10 4 L16 24 L0 12 L-16 24 L-10 4 L-26 -8 L-6 -8 Z"
-                fill="var(--rocket-star-points)"
-                stroke="var(--rocket-ink)"
-                stroke-width="3"
-                filter="url(#ink-shadow)"
-              />
-              <circle cx="0" cy="0" r="10" fill="var(--rocket-star-center)" stroke="var(--rocket-ink)" stroke-width="3" />
-            </g>
-          </g>
-
           <!-- Fumes (idle + shared); y aligned with exhaust under rocket anchor -->
           <g class="fumes" transform="translate(200 418)">
             <ellipse
