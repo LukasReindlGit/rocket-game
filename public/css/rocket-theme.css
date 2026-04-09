@@ -1,4 +1,4 @@
-/* Default rocket palette — overridden at runtime from /data/rocket-colors.csv via /api/rocket-colors */
+/* Rocket palette — edit here; VS Code shows color swatches next to hex values. */
 
 body.page-rocket {
   --rocket-page-background: #0f172a;
@@ -9,8 +9,8 @@ body.page-rocket {
   --rocket-stage-sky-2: #bae6fd;
   --rocket-stage-sky-3: #e0f2fe;
   --rocket-stage-sky-4: #f0fdf4;
-  --rocket-stage-field-mid: #ecfccb;
-  --rocket-stage-field: #dcfce7;
+  --rocket-stage-field-mid: #d3fccb;
+  --rocket-stage-field: #9de4b6;
   --rocket-stage-scene: linear-gradient(
     180deg,
     var(--rocket-stage-sky-1) 0%,
@@ -22,11 +22,11 @@ body.page-rocket {
   );
   --rocket-stage-box-shadow: 8px 8px 0 rgba(15, 23, 42, 0.35);
 
-  --rocket-mountain-1: #94a3b8;
-  --rocket-mountain-2: #cbd5e1;
-  --rocket-mountain-3: #64748b;
-  --rocket-launchpad-outer: #bbf7d0;
-  --rocket-launchpad-inner: #dcfce7;
+  --rocket-mountain-1: #c1c6ce;
+  --rocket-mountain-2: #e3e8ee;
+  --rocket-mountain-3: #a1acbb;
+  --rocket-launchpad-outer: #c9c6b9;
+  --rocket-launchpad-inner: #fcf9dc;
   --rocket-tree-trunk: #57534e;
   --rocket-tree-foliage-1: #15803d;
   --rocket-tree-foliage-2: #16a34a;
@@ -94,4 +94,12 @@ body.page-rocket {
 
   --rocket-api-hint-bg: rgba(30, 41, 59, 0.6);
   --rocket-api-hint-code: #7dd3fc;
+
+  /* Confetti (read by rocket.js for canvas-confetti) */
+  --rocket-confetti-0: #fde047;
+  --rocket-confetti-1: #4ade80;
+  --rocket-confetti-2: #38bdf8;
+  --rocket-confetti-3: #f472b6;
+  --rocket-confetti-4: #a78bfa;
+  --rocket-confetti-5: #fb923c;
 }

@@ -1,4 +1,4 @@
-/* Rocket page — viewport mesh + stage fill (palette: rocket-theme.css + data/rocket-colors.csv). */
+/* Rocket page — viewport mesh + stage fill (palette: rocket-theme.css). */
 
 body.page-rocket .app-bg::before {
   content: "";

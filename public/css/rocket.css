@@ -1,6 +1,6 @@
 /* Rocket demo page — comic SVG + scenario animations */
 
-/* Comic rocket UI — colors from body.page-rocket (rocket-theme.css + data/rocket-colors.csv). */
+/* Comic rocket UI — colors: public/css/rocket-theme.css */
 
 .rocket-page {
   min-height: 100%;

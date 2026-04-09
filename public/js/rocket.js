@@ -1,54 +1,28 @@
 "use strict";
 
 (function () {
-  const DEFAULT_CONFETTI_COLORS = [
-    "#fde047",
-    "#4ade80",
-    "#38bdf8",
-    "#f472b6",
-    "#a78bfa",
-    "#fb923c",
-  ];
+  const CONFETTI_VAR_COUNT = 6;
+  const CONFETTI_FALLBACK = ["#fde047", "#4ade80", "#38bdf8", "#f472b6", "#a78bfa", "#fb923c"];
 
   /**
-   * @param {Record<string, string>} colors
+   * Confetti colors come from `rocket-theme.css` (--rocket-confetti-0 …) so they stay editable as CSS.
+   * @returns {string[]}
    */
-  function applyRocketColors(colors) {
-    const body = document.body;
-    if (!body || !colors) return;
-    for (const [key, raw] of Object.entries(colors)) {
-      if (raw == null || String(raw).trim() === "") continue;
-      const val = String(raw).trim();
-      if (key === "mesh_url") {
-        body.style.setProperty("--rocket-bg-mesh", `url("${val}")`);
-        continue;
-      }
-      if (key === "confetti_colors") {
-        window.__rocketConfettiColors = val
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        continue;
-      }
-      const cssName = "--rocket-" + key.replace(/_/g, "-");
-      body.style.setProperty(cssName, val);
+  function confettiColorsFromTheme() {
+    const root = document.body;
+    if (!root) {
+      return CONFETTI_FALLBACK;
     }
-  }
-
-  async function loadRocketColors() {
-    try {
-      const r = await fetch("/api/rocket-colors");
-      if (!r.ok) return;
-      const data = await r.json();
-      if (data && data.colors && typeof data.colors === "object") {
-        applyRocketColors(data.colors);
+    const styles = getComputedStyle(root);
+    const out = [];
+    for (let i = 0; i < CONFETTI_VAR_COUNT; i++) {
+      const v = styles.getPropertyValue(`--rocket-confetti-${i}`).trim();
+      if (v) {
+        out.push(v);
       }
-    } catch {
-      /* keep rocket-theme.css defaults */
     }
+    return out.length > 0 ? out : CONFETTI_FALLBACK;
   }
-
-  loadRocketColors();
 
   const stage = document.getElementById("rocket-stage");
   const statusEl = document.getElementById("rocket-status");
@@ -102,10 +76,7 @@
     resizeCanvas();
     const x = 0.5;
     const y = 0.28;
-    const confettiColors =
-      Array.isArray(window.__rocketConfettiColors) && window.__rocketConfettiColors.length > 0
-        ? window.__rocketConfettiColors
-        : DEFAULT_CONFETTI_COLORS;
+    const confettiColors = confettiColorsFromTheme();
     burst({
       particleCount: 140,
       spread: 75,
