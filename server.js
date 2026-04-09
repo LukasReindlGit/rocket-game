@@ -1,10 +1,22 @@
 "use strict";
 
+const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
 const express = require("express");
 const QRCode = require("qrcode");
+
+const SURVEY_HMAC_SECRET =
+  process.env.SURVEY_HMAC_SECRET ||
+  "dev-survey-hmac-secret-change-in-production";
+if (!process.env.SURVEY_HMAC_SECRET) {
+  console.warn(
+    "SURVEY_HMAC_SECRET is not set; using a dev default. Set the env var in production."
+  );
+}
+
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 const explicitPort =
   Object.prototype.hasOwnProperty.call(process.env, "PORT") &&
@@ -28,10 +40,148 @@ function ensureDataFile() {
   if (!fs.existsSync(DATA_PATH)) {
     fs.writeFileSync(
       DATA_PATH,
-      "submitted_at,name,email,nickname,score_ms,elapsed_ms\n",
+      "submitted_at,vorname,nachname,company,email,score_ms,elapsed_ms\n",
       "utf8"
     );
+    return;
   }
+  migrateLeaderboardCsvIfNeeded();
+  migrateEmailColumnIfNeeded();
+}
+
+function migrateLeaderboardCsvIfNeeded() {
+  const raw = fs.readFileSync(DATA_PATH, "utf8");
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return;
+  const header = parseCSVLine(lines[0]);
+  if (header.includes("vorname")) return;
+
+  const newHeader =
+    "submitted_at,vorname,nachname,company,email,score_ms,elapsed_ms";
+  const out = [newHeader];
+  const idx = (name) => header.indexOf(name);
+  const iName = idx("name");
+  const iNick = idx("nickname");
+  const iEmail = idx("email");
+  const iSubmitted = idx("submitted_at");
+  const iScore = idx("score_ms");
+  const iElapsed = idx("elapsed_ms");
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const get = (j) => (j >= 0 ? cols[j] ?? "" : "");
+    const oldName = get(iName);
+    const nick = get(iNick);
+    const vorname = oldName || nick || "—";
+    const nachname = "";
+    const company = "";
+    const email = iEmail >= 0 ? get(iEmail) : "";
+    out.push(
+      [
+        get(iSubmitted),
+        vorname,
+        nachname,
+        company,
+        email,
+        get(iScore),
+        get(iElapsed),
+      ]
+        .map(csvEscape)
+        .join(",")
+    );
+  }
+  fs.writeFileSync(DATA_PATH, out.join("\n") + "\n", "utf8");
+}
+
+/** Adds `email` column after `company` when missing (older vorname-based CSV). */
+function migrateEmailColumnIfNeeded() {
+  const raw = fs.readFileSync(DATA_PATH, "utf8");
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return;
+  const header = parseCSVLine(lines[0]);
+  if (!header.includes("vorname") || header.includes("email")) return;
+
+  const out = [
+    "submitted_at,vorname,nachname,company,email,score_ms,elapsed_ms",
+  ];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const row = {};
+    header.forEach((h, j) => {
+      row[h] = cols[j] ?? "";
+    });
+    out.push(
+      [
+        row.submitted_at,
+        row.vorname,
+        row.nachname,
+        row.company,
+        "",
+        row.score_ms,
+        row.elapsed_ms,
+      ]
+        .map(csvEscape)
+        .join(",")
+    );
+  }
+  fs.writeFileSync(DATA_PATH, out.join("\n") + "\n", "utf8");
+}
+
+/**
+ * @returns {{ score_ms: number, elapsed_ms: number | null } | null}
+ */
+function verifySurveyToken(tokenStr) {
+  if (typeof tokenStr !== "string" || tokenStr.length < 10 || tokenStr.length > 4096) {
+    return null;
+  }
+  const parts = tokenStr.split(".");
+  if (parts.length !== 2) return null;
+  const [payloadB64, sig] = parts;
+  const expectedSig = crypto
+    .createHmac("sha256", SURVEY_HMAC_SECRET)
+    .update(payloadB64)
+    .digest("base64url");
+  let sigBuf;
+  let expBuf;
+  try {
+    sigBuf = Buffer.from(sig, "base64url");
+    expBuf = Buffer.from(expectedSig, "base64url");
+  } catch {
+    return null;
+  }
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return null;
+  }
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
+  if (payload.v !== 1) return null;
+  if (typeof payload.exp !== "number" || Date.now() > payload.exp) return null;
+  const score_ms = Number(payload.s);
+  const elapsed_ms = payload.e == null ? null : Number(payload.e);
+  if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) return null;
+  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) return null;
+  return { score_ms: Math.round(score_ms), elapsed_ms: elapsed_ms == null ? null : Math.round(elapsed_ms) };
+}
+
+function mintSurveyToken(score_ms, elapsed_ms) {
+  const iat = Date.now();
+  const exp = iat + TOKEN_MAX_AGE_MS;
+  const payload = {
+    v: 1,
+    s: Math.round(score_ms),
+    e: elapsed_ms == null ? null : Math.round(elapsed_ms),
+    iat,
+    exp,
+  };
+  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const sig = crypto
+    .createHmac("sha256", SURVEY_HMAC_SECRET)
+    .update(payloadB64)
+    .digest("base64url");
+  return `${payloadB64}.${sig}`;
 }
 
 function csvEscape(value) {
@@ -92,11 +242,23 @@ function readLeaderboard() {
     const score = Number(row.score_ms);
     const elapsed = Number(row.elapsed_ms);
     if (!Number.isFinite(score)) continue;
+    const hasVorname = header.includes("vorname");
+    const vorname = hasVorname ? row.vorname : row.name;
+    const nachname = hasVorname ? row.nachname : "";
+    const company = hasVorname ? row.company : "";
+    const nickname = row.nickname || "";
+    const display =
+      nickname ||
+      [vorname, nachname].filter(Boolean).join(" ").trim() ||
+      row.name ||
+      "—";
     rows.push({
       submitted_at: row.submitted_at,
-      name: row.name,
-      email: row.email,
-      nickname: row.nickname,
+      vorname,
+      nachname,
+      company,
+      email: row.email ?? "",
+      display,
       score_ms: score,
       elapsed_ms: Number.isFinite(elapsed) ? elapsed : null,
     });
@@ -116,9 +278,10 @@ function appendRow(row) {
   const line =
     [
       row.submitted_at,
-      row.name,
+      row.vorname,
+      row.nachname,
+      row.company,
       row.email,
-      row.nickname,
       row.score_ms,
       row.elapsed_ms,
     ]
@@ -176,11 +339,52 @@ app.get("/survey", (_req, res) => {
   res.sendFile(path.join(PUBLIC, "survey.html"));
 });
 
+/**
+ * Mint a signed survey URL token (score not readable without server secret).
+ */
+app.post("/api/mint-survey-token", (req, res) => {
+  const body = req.body || {};
+  const score_ms = Number(body.score_ms);
+  const elapsed_ms = body.elapsed_ms == null ? null : Number(body.elapsed_ms);
+  if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) {
+    return res.status(400).json({ error: "invalid_score" });
+  }
+  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) {
+    return res.status(400).json({ error: "invalid_elapsed" });
+  }
+  const token = mintSurveyToken(score_ms, elapsed_ms);
+  res.json({ token });
+});
+
+/**
+ * Verify token and return score for survey UI (no secret in browser).
+ */
+app.get("/api/survey-token-info", (req, res) => {
+  const raw = req.query.t;
+  if (typeof raw !== "string" || raw.length === 0) {
+    return res.status(400).json({ error: "missing_token" });
+  }
+  const verified = verifySurveyToken(raw);
+  if (!verified) {
+    return res.status(400).json({ error: "invalid_or_expired_token" });
+  }
+  res.json({
+    score_ms: verified.score_ms,
+    elapsed_ms: verified.elapsed_ms,
+  });
+});
+
 app.get("/api/leaderboard", (_req, res) => {
   try {
     const sorted = sortLeaderboard(readLeaderboard());
     const limit = Math.min(50, Math.max(1, Number(_req.query.limit) || 20));
-    res.json({ entries: sorted.slice(0, limit) });
+    const entries = sorted.slice(0, limit).map((row) => ({
+      submitted_at: row.submitted_at,
+      display: row.display,
+      score_ms: row.score_ms,
+      elapsed_ms: row.elapsed_ms,
+    }));
+    res.json({ entries });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "leaderboard_read_failed" });
@@ -189,37 +393,38 @@ app.get("/api/leaderboard", (_req, res) => {
 
 app.post("/api/submit", (req, res) => {
   const body = req.body || {};
-  const name = String(body.name ?? "").trim().slice(0, 200);
+  const token = String(body.token ?? "").trim();
+  const vorname = String(body.vorname ?? "").trim().slice(0, 120);
+  const nachname = String(body.nachname ?? "").trim().slice(0, 120);
+  const company = String(body.company ?? "").trim().slice(0, 200);
   const email = String(body.email ?? "").trim().slice(0, 320);
-  const nickname = String(body.nickname ?? "").trim().slice(0, 100);
-  const score_ms = Number(body.score_ms);
-  const elapsed_ms = body.elapsed_ms == null ? null : Number(body.elapsed_ms);
 
-  if (!name || !email) {
-    return res.status(400).json({ error: "name_and_email_required" });
+  const verified = verifySurveyToken(token);
+  if (!verified) {
+    return res.status(400).json({ error: "invalid_or_expired_token" });
+  }
+  const { score_ms, elapsed_ms } = verified;
+
+  if (!vorname || !nachname || !company || !email) {
+    return res.status(400).json({ error: "name_fields_required" });
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: "invalid_email" });
-  }
-  if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) {
-    return res.status(400).json({ error: "invalid_score" });
-  }
-  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) {
-    return res.status(400).json({ error: "invalid_elapsed" });
   }
 
   const submitted_at = new Date().toISOString();
   try {
     appendRow({
       submitted_at,
-      name,
+      vorname,
+      nachname,
+      company,
       email,
-      nickname,
-      score_ms: Math.round(score_ms),
+      score_ms,
       elapsed_ms:
         elapsed_ms == null || !Number.isFinite(elapsed_ms)
           ? ""
-          : Math.round(elapsed_ms),
+          : elapsed_ms,
     });
     res.json({ ok: true });
   } catch (e) {

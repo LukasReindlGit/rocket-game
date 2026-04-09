@@ -80,13 +80,30 @@ function onBuzzerAction(fromKeyboard) {
   }
 }
 
-function showQrForScore(scoreMs, elapsedRounded) {
+async function showQrForScore(scoreMs, elapsedRounded) {
   el.qrHost.replaceChildren();
   const base = `${window.location.origin}/survey`;
-  const params = new URLSearchParams({
-    time: String(scoreMs),
-    elapsed: String(elapsedRounded),
-  });
+  let token;
+  try {
+    const r = await fetch("/api/mint-survey-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        score_ms: scoreMs,
+        elapsed_ms: elapsedRounded,
+      }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.token) {
+      throw new Error("mint_failed");
+    }
+    token = data.token;
+  } catch {
+    el.surveyUrl.textContent =
+      "Ergebnis konnte nicht signiert werden — bitte Seite neu laden und erneut spielen.";
+    return;
+  }
+  const params = new URLSearchParams({ t: token });
   const url = `${base}?${params.toString()}`;
   el.surveyUrl.textContent = url;
 
@@ -143,7 +160,7 @@ async function fetchLeaderboard() {
     el.lbList.replaceChildren();
     entries.forEach((row, i) => {
       const li = document.createElement("li");
-      const name = row.nickname || row.name || "—";
+      const name = row.display || "—";
       li.innerHTML = `
         <span class="lb-rank">${i + 1}.</span>
         <span class="lb-name" title="${escapeAttr(name)}">${escapeHtml(name)}</span>

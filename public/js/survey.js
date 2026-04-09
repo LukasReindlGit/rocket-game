@@ -1,48 +1,59 @@
 const params = new URLSearchParams(window.location.search);
-const timeRaw = params.get("time");
-const elapsedRaw = params.get("elapsed");
-
-const scoreMs = timeRaw != null && timeRaw !== "" ? Number(timeRaw) : NaN;
-const elapsedMs = elapsedRaw != null && elapsedRaw !== "" ? Number(elapsedRaw) : null;
+const tokenRaw = params.get("t");
 
 const el = {
   scoreDisplay: document.getElementById("score-display"),
-  fieldScore: document.getElementById("field-score"),
-  fieldElapsed: document.getElementById("field-elapsed"),
+  fieldToken: document.getElementById("field-token"),
   form: document.getElementById("survey-form"),
   btnSubmit: document.getElementById("btn-submit"),
   msgError: document.getElementById("msg-error"),
   msgSuccess: document.getElementById("msg-success"),
 };
 
-if (!Number.isFinite(scoreMs) || scoreMs < 0) {
-  el.scoreDisplay.textContent = "ungültig oder fehlt";
-  el.fieldScore.value = "";
-} else {
-  el.scoreDisplay.textContent = `${Math.round(scoreMs)} ms`;
-  el.fieldScore.value = String(Math.round(scoreMs));
+async function loadTokenInfo() {
+  if (tokenRaw == null || tokenRaw === "") {
+    el.scoreDisplay.textContent = "ungültig oder fehlt";
+    el.fieldToken.value = "";
+    el.btnSubmit.disabled = true;
+    return;
+  }
+  el.fieldToken.value = tokenRaw;
+  try {
+    const res = await fetch(`/api/survey-token-info?t=${encodeURIComponent(tokenRaw)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      el.scoreDisplay.textContent = "ungültig oder abgelaufen";
+      el.fieldToken.value = "";
+      el.btnSubmit.disabled = true;
+      return;
+    }
+    const scoreMs = Number(data.score_ms);
+    el.scoreDisplay.textContent = Number.isFinite(scoreMs)
+      ? `${Math.round(scoreMs)} ms`
+      : "—";
+  } catch {
+    el.scoreDisplay.textContent = "Konnte nicht geladen werden";
+    el.fieldToken.value = "";
+    el.btnSubmit.disabled = true;
+  }
 }
 
-if (elapsedMs != null && Number.isFinite(elapsedMs)) {
-  el.fieldElapsed.value = String(Math.round(elapsedMs));
-} else {
-  el.fieldElapsed.value = "";
-}
+loadTokenInfo();
 
 el.form.addEventListener("submit", async (e) => {
   e.preventDefault();
   el.msgError.hidden = true;
   el.msgSuccess.hidden = true;
 
-  const name = document.getElementById("field-name").value.trim();
+  const token = el.fieldToken.value.trim();
+  const vorname = document.getElementById("field-vorname").value.trim();
+  const nachname = document.getElementById("field-nachname").value.trim();
+  const company = document.getElementById("field-company").value.trim();
   const email = document.getElementById("field-email").value.trim();
-  const nickname = document.getElementById("field-nickname").value.trim();
-  const score = Number(el.fieldScore.value);
-  const elapsed =
-    el.fieldElapsed.value === "" ? null : Number(el.fieldElapsed.value);
 
-  if (!Number.isFinite(score) || score < 0) {
-    el.msgError.textContent = "Ungültiges Ergebnis. Bitte erneut vom Kiosk-QR scannen.";
+  if (!token) {
+    el.msgError.textContent =
+      "Ungültiges Ergebnis. Bitte den QR-Code vom Messe-Display scannen.";
     el.msgError.hidden = false;
     return;
   }
@@ -53,25 +64,29 @@ el.form.addEventListener("submit", async (e) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name,
+        token,
+        vorname,
+        nachname,
+        company,
         email,
-        nickname,
-        score_ms: score,
-        elapsed_ms: elapsed,
       }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       el.msgError.textContent =
-        data.error === "invalid_email"
-          ? "Bitte gültige E-Mail eingeben."
-          : data.error === "name_and_email_required"
-            ? "Name und E-Mail sind Pflichtfelder."
+        data.error === "name_fields_required"
+          ? "Vorname, Nachname, Unternehmen und E-Mail sind Pflichtfelder."
+          : data.error === "invalid_email"
+            ? "Bitte gültige E-Mail eingeben."
+            : data.error === "invalid_or_expired_token"
+            ? "Das Ergebnis ist ungültig oder abgelaufen — bitte erneut spielen und QR scannen."
             : "Senden fehlgeschlagen. Bitte später erneut versuchen.";
       el.msgError.hidden = false;
+      el.btnSubmit.disabled = false;
       return;
     }
-    el.msgSuccess.textContent = "Danke! Du stehst in der Bestenliste, sobald die Seite aktualisiert wird.";
+    el.msgSuccess.textContent =
+      "Danke! Du stehst in der Bestenliste, sobald die Seite aktualisiert wird.";
     el.msgSuccess.hidden = false;
     el.form.querySelectorAll("input:not([type=hidden])").forEach((inp) => {
       inp.disabled = true;
