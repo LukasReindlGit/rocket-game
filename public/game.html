@@ -36,8 +36,7 @@
               aria-labelledby="game-panel-play-title"
             >
               <h2 id="game-panel-play-title" class="sr-only">Spiel</h2>
-              <div class="game-stage" id="game-stage" aria-live="polite">
-                <p class="state-hint" id="state-hint"></p>
+              <div class="game-stage" id="game-stage">
                 <div id="game-rocket-wrap" class="game-rocket-wrap" aria-hidden="true"></div>
               </div>
             </section>
@@ -46,8 +45,10 @@
               class="panel game-panel game-panel--controls"
               id="game-panel-controls"
               aria-labelledby="game-panel-controls-title"
+              aria-live="polite"
             >
               <h2 id="game-panel-controls-title" class="sr-only">Start und Stopp</h2>
+              <p class="state-hint" id="state-hint"></p>
               <div class="buzzer-wrap">
                 <button type="button" class="buzzer-btn" id="buzzer-btn" aria-label="Starten">
                   <img

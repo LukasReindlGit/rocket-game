@@ -114,6 +114,11 @@ body {
 /* Same track for buzzer card and Ergebnis/QR card (they never show at once) */
 body.game-page {
   --game-side-card: minmax(260px, min(42vw, 400px));
+  --game-rocket-frame-w: 800px;
+}
+
+body.game-page .layout .panel {
+  min-height: 800px;
 }
 
 .game-panels {
@@ -153,8 +158,16 @@ body.game-page {
 
 .game-panel--controls {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.game-panel--controls .state-hint {
+  margin: 0;
+  max-width: 28ch;
 }
 
 /* `hidden` must win over `display: flex` above (author CSS beats UA [hidden]) */
@@ -565,12 +578,18 @@ body.game-page {
 
 /* Fixed rocket frame size on the game page (no responsive shrinking) */
 body.game-page #game-rocket-wrap {
-  width: var(--game-rocket-frame-w, 300px);
-  max-width: min(var(--game-rocket-frame-w, 300px), 100%);
+  width: var(--game-rocket-frame-w, 800px);
+  max-width: min(var(--game-rocket-frame-w, 800px), 100%);
   height: auto;
   aspect-ratio: 4 / 5;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* rocket.css caps .rocket-stage-wrap at 420px — fill the game wrapper instead */
+body.game-page #game-rocket-wrap .rocket-stage-wrap {
+  width: 100%;
+  max-width: none;
 }
 
 /* Running: glow on the cockpit window (SVG), replaces pulse ring */
@@ -600,8 +619,14 @@ body.game-page #game-rocket-wrap {
   margin: 0;
 }
 
-/* Game page — landscape / short viewports: fit without full-page vertical scroll */
-@media (orientation: landscape) and (max-height: 860px),
+/*
+ * Game page — widescreen / short viewports.
+ * Do not gate on max-height alone: wide but tall windows (e.g. 1920×1080) are still
+ * landscape / widescreen and need the same layout. `orientation` can also be flaky
+ * in some embeds — min-aspect-ratio is a second signal (viewport width ÷ height).
+ */
+@media (orientation: landscape),
+  (min-aspect-ratio: 4/3),
   (max-height: 560px) and (min-width: 480px) {
   body.game-page {
     overflow-x: clip;
