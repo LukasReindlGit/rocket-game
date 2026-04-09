@@ -62,6 +62,24 @@
   cursor: not-allowed;
 }
 
+.btn-idle {
+  background: linear-gradient(
+    180deg,
+    #f8fafc 0%,
+    #e2e8f0 100%
+  );
+  color: var(--rocket-ink);
+}
+
+.btn-ready {
+  background: linear-gradient(
+    180deg,
+    #e2e8f0 0%,
+    #cbd5e1 100%
+  );
+  color: var(--rocket-ink);
+}
+
 .btn-great {
   background: linear-gradient(
     180deg,
@@ -115,6 +133,7 @@
 }
 
 .rocket-stage--idle .crack-lines,
+.rocket-stage--ready .crack-lines,
 .rocket-stage--great .crack-lines,
 .rocket-stage--meh .crack-lines {
   opacity: 0;
@@ -130,7 +149,63 @@
   visibility: visible;
 }
 
-/* Idle: fumes only */
+/* Pre-launch "ready" pose — extra pad smoke layer (SVG .launch-prep-smoke) */
+.launch-prep-smoke {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.rocket-stage--ready .launch-prep-smoke {
+  opacity: 1;
+  visibility: visible;
+}
+
+.rocket-stage--ready .prep-smoke {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.rocket-stage--ready .prep-smoke--a {
+  animation: ready-prep-swirl 1.15s ease-in-out infinite;
+}
+
+.rocket-stage--ready .prep-smoke--b {
+  animation: ready-prep-swirl-alt 1.28s ease-in-out infinite;
+  animation-delay: 0.14s;
+}
+
+.rocket-stage--ready .prep-smoke--c {
+  animation: ready-prep-swirl 1.08s ease-in-out infinite;
+  animation-delay: 0.28s;
+}
+
+.rocket-stage--ready .prep-smoke--d {
+  animation: ready-prep-swirl-alt 1.35s ease-in-out infinite;
+  animation-delay: 0.06s;
+}
+
+.rocket-stage--ready .prep-smoke--e {
+  animation: ready-prep-swirl 1.22s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.rocket-stage--ready .prep-smoke--f {
+  animation: ready-prep-swirl-alt 1.05s ease-in-out infinite;
+  animation-delay: 0.18s;
+}
+
+.rocket-stage--ready .prep-smoke--g {
+  animation: ready-prep-swirl 1.32s ease-in-out infinite;
+  animation-delay: 0.52s;
+}
+
+.rocket-stage--ready .prep-smoke--h {
+  animation: ready-prep-swirl-alt 1.18s ease-in-out infinite;
+  animation-delay: 0.33s;
+}
+
+/* Idle: subtle fumes only */
 .rocket-stage--idle .fume-puff {
   animation: fume-pulse 1.2s ease-in-out infinite;
 }
@@ -143,7 +218,21 @@
   animation-delay: 0.7s;
 }
 
-.rocket-stage--idle .rocket-group {
+/* Ready-for-launch: stronger billowing at the pad + same gentle rocket bob */
+.rocket-stage--ready .fume-puff {
+  animation: ready-fume-surround 0.78s ease-in-out infinite;
+}
+
+.rocket-stage--ready .fume-puff:nth-child(2) {
+  animation-delay: 0.22s;
+}
+
+.rocket-stage--ready .fume-puff:nth-child(3) {
+  animation-delay: 0.44s;
+}
+
+.rocket-stage--idle .rocket-group,
+.rocket-stage--ready .rocket-group {
   animation: idle-bob 2.5s ease-in-out infinite;
 }
 
@@ -203,8 +292,9 @@
   }
 }
 
-/* Idle: no visible flame (only fumes) */
-.rocket-stage--idle .idle-flame {
+/* Rest poses: no main engine flame (only fumes / pad smoke) */
+.rocket-stage--idle .idle-flame,
+.rocket-stage--ready .idle-flame {
   visibility: hidden;
   opacity: 0;
 }
@@ -221,6 +311,50 @@
   }
 }
 
+@keyframes ready-fume-surround {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateY(0) scale(1.05);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-14px) scale(1.28);
+  }
+}
+
+@keyframes ready-prep-swirl {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.92;
+  }
+  40% {
+    transform: translate(-5px, -18px) scale(1.1);
+    opacity: 0.72;
+  }
+  70% {
+    transform: translate(6px, -8px) scale(1.04);
+    opacity: 0.88;
+  }
+}
+
+@keyframes ready-prep-swirl-alt {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.85;
+  }
+  35% {
+    transform: translate(7px, -14px) scale(1.12);
+    opacity: 0.65;
+  }
+  65% {
+    transform: translate(-4px, -20px) scale(1.06);
+    opacity: 0.78;
+  }
+}
+
 @keyframes idle-bob {
   0%,
   100% {
@@ -231,10 +365,13 @@
   }
 }
 
-/* Hide scenario-only elements in idle */
+/* Hide scenario-only elements in rest poses */
 .rocket-stage--idle .launch-flame,
+.rocket-stage--ready .launch-flame,
 .rocket-stage--idle .fail-burst,
-.rocket-stage--idle .meh-sweat {
+.rocket-stage--ready .fail-burst,
+.rocket-stage--idle .meh-sweat,
+.rocket-stage--ready .meh-sweat {
   opacity: 0;
   visibility: hidden;
 }
@@ -310,13 +447,14 @@
     transform: scaleY(1.35);
     opacity: 1;
   }
-  55% {
-    transform: scaleY(1.95) translateY(8px);
-    opacity: 0.92;
+  52% {
+    transform: scaleY(1.82) translateY(6px);
+    opacity: 0.96;
   }
   100% {
-    transform: scaleY(2.35) translateY(28px);
-    opacity: 0.18;
+    /* Hold: avoid extreme scale + near-zero opacity (looked pinched / ghostly at the tip) */
+    transform: scaleY(1.62) translateY(12px);
+    opacity: 0.52;
   }
 }
 
@@ -327,9 +465,9 @@
   10% {
     transform: translate(0, 10px) rotate(-3deg);
   }
-  45% {
+  /* 45% {
     transform: translate(0, min(-35vh, -320px)) rotate(0deg);
-  }
+  } */
   100% {
     /* Clear the stage and viewport — vh scales with screen; px floor for small viewports */
     transform: translate(0, min(-125vh, -960px)) rotate(0deg);

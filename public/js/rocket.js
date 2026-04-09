@@ -14,6 +14,10 @@
   let btnMeh = null;
   /** @type {HTMLButtonElement | null} */
   let btnFail = null;
+  /** @type {HTMLButtonElement | null} */
+  let btnReady = null;
+  /** @type {HTMLButtonElement | null} */
+  let btnIdle = null;
   /** @type {HTMLCanvasElement | null} */
   let canvas = null;
 
@@ -115,14 +119,31 @@
   }
 
   function setButtonsDisabled(disabled) {
-    [btnGreat, btnMeh, btnFail].forEach((b) => {
+    [btnIdle, btnReady, btnGreat, btnMeh, btnFail].forEach((b) => {
       if (b) b.disabled = disabled;
     });
   }
 
-  function resetToIdle() {
+  function clearScenarioTimer() {
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      resetTimer = 0;
+    }
+  }
+
+  /** Subtle fumes — default lobby / before start (game idle). */
+  function applyIdlePose() {
     if (!stage) return;
     stage.className = "rocket-stage-wrap rocket-stage rocket-stage--idle";
+    if (statusEl) statusEl.textContent = "";
+    setButtonsDisabled(false);
+    busy = false;
+  }
+
+  /** Heavy pad smoke — "ready for launch" while the round is running (game running). */
+  function applyReadyPose() {
+    if (!stage) return;
+    stage.className = "rocket-stage-wrap rocket-stage rocket-stage--ready";
     if (statusEl) statusEl.textContent = "";
     setButtonsDisabled(false);
     busy = false;
@@ -135,10 +156,7 @@
     const cfg = SCENARIOS[key];
     if (!cfg || !stage || busy) return;
 
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      resetTimer = 0;
-    }
+    clearScenarioTimer();
 
     busy = true;
     setButtonsDisabled(true);
@@ -162,12 +180,17 @@
     }, cfg.durationMs);
   }
 
+  /** Back to subtle idle (game start screen / after "play again"). */
   function resetRocketStage() {
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      resetTimer = 0;
-    }
-    resetToIdle();
+    clearScenarioTimer();
+    applyIdlePose();
+    resizeCanvas();
+  }
+
+  /** Ready-for-launch pose — call when the timer round is active (game: running). */
+  function setRocketReadyForLaunch() {
+    clearScenarioTimer();
+    applyReadyPose();
     resizeCanvas();
   }
 
@@ -183,12 +206,16 @@
     canvas = scope.querySelector("#confetti-canvas");
     statusEl = document.getElementById("rocket-status");
 
+    btnIdle = document.getElementById("btn-idle");
+    btnReady = document.getElementById("btn-ready");
     btnGreat = document.getElementById("btn-great");
     btnMeh = document.getElementById("btn-meh");
     btnFail = document.getElementById("btn-fail");
 
     if (!stage || !canvas) return;
 
+    btnIdle?.addEventListener("click", () => resetRocketStage());
+    btnReady?.addEventListener("click", () => setRocketReadyForLaunch());
     btnGreat?.addEventListener("click", () => playRocketScenario("great"));
     btnMeh?.addEventListener("click", () => playRocketScenario("meh"));
     btnFail?.addEventListener("click", () => playRocketScenario("fail"));
@@ -199,6 +226,7 @@
   window.mountRocketStage = mountRocketStage;
   window.playRocketScenario = playRocketScenario;
   window.resetRocketStage = resetRocketStage;
+  window.setRocketReadyForLaunch = setRocketReadyForLaunch;
 
   window.addEventListener("resize", () => {
     if (stage) resizeCanvas();

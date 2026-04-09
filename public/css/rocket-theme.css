@@ -37,6 +37,12 @@ body.game-page {
   --rocket-fume-2: #e2e8f0;
   --rocket-fume-3: #94a3b8;
 
+  /* Dense pad smoke — "ready for launch" rest pose */
+  --rocket-ready-smoke-a: #f1f5f9;
+  --rocket-ready-smoke-b: #e2e8f0;
+  --rocket-ready-smoke-c: #cbd5e1;
+  --rocket-ready-smoke-d: #94a3b8;
+
   --rocket-fail-smoke-1: #64748b;
   --rocket-fail-smoke-2: #94a3b8;
   --rocket-fail-smoke-3: #475569;

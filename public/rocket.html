@@ -25,6 +25,8 @@
       </p>
 
       <div class="rocket-controls" role="group" aria-label="Animation auslösen">
+        <button type="button" class="btn-idle" id="btn-idle">Idle</button>
+        <button type="button" class="btn-ready" id="btn-ready">Startbereit</button>
         <button type="button" class="btn-great" id="btn-great">Great success!</button>
         <button type="button" class="btn-meh" id="btn-meh">Meh!</button>
         <button type="button" class="btn-fail" id="btn-fail">Failure</button>
@@ -36,10 +38,10 @@
       <p class="rocket-status" id="rocket-status" aria-live="polite"></p>
 
       <div class="rocket-api-hint">
-        Auf der Spielseite werden dieselben Szenen automatisch per Punktzahl ausgelöst (siehe
-        <code>ROCKET_SCORE_RULES</code> in <code>game.js</code>). Hier:
-        <code>playRocketScenario(&quot;great&quot;)</code>, <code>&quot;meh&quot;</code>,
-        <code>&quot;fail&quot;</code>.
+        Spiel: <strong>Idle</strong> vor Start, <strong>Startbereit</strong> während der Runde, danach Ergebnis-Animation.
+        Score-Regeln: <code>ROCKET_SCORE_RULES</code> in <code>game.js</code>. API:
+        <code>resetRocketStage()</code> (Idle), <code>setRocketReadyForLaunch()</code>,
+        <code>playRocketScenario(&quot;great&quot;|&quot;meh&quot;|&quot;fail&quot;)</code>.
       </div>
     </div>
 

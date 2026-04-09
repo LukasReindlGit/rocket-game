@@ -134,6 +134,95 @@
             />
           </g>
 
+          <!-- Ready-for-launch: dense pad smoke (pre-start idle; only visible in .rocket-stage--ready) -->
+          <g class="launch-prep-smoke" transform="translate(200 418)" aria-hidden="true">
+            <ellipse
+              class="prep-smoke prep-smoke--a"
+              cx="0"
+              cy="44"
+              rx="54"
+              ry="40"
+              fill="var(--rocket-ready-smoke-a)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2.5"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--b"
+              cx="-50"
+              cy="34"
+              rx="42"
+              ry="32"
+              fill="var(--rocket-ready-smoke-b)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2.5"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--c"
+              cx="50"
+              cy="32"
+              rx="40"
+              ry="30"
+              fill="var(--rocket-ready-smoke-c)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2.5"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--d"
+              cx="-26"
+              cy="54"
+              rx="46"
+              ry="34"
+              fill="var(--rocket-ready-smoke-d)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2"
+              opacity="0.9"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--e"
+              cx="30"
+              cy="50"
+              rx="44"
+              ry="36"
+              fill="var(--rocket-ready-smoke-a)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2.5"
+              opacity="0.82"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--f"
+              cx="-6"
+              cy="60"
+              rx="60"
+              ry="38"
+              fill="var(--rocket-ready-smoke-b)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2.5"
+              opacity="0.76"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--g"
+              cx="14"
+              cy="64"
+              rx="52"
+              ry="32"
+              fill="var(--rocket-ready-smoke-c)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2"
+              opacity="0.68"
+            />
+            <ellipse
+              class="prep-smoke prep-smoke--h"
+              cx="-38"
+              cy="58"
+              rx="34"
+              ry="24"
+              fill="var(--rocket-fume-3)"
+              stroke="var(--rocket-ink)"
+              stroke-width="2"
+              opacity="0.58"
+            />
+          </g>
+
           <!-- Failure smoke burst; outer g fixes world position (CSS scale must not replace translate) -->
           <g transform="translate(200 428)">
             <g class="fail-burst" opacity="0" visibility="hidden">
@@ -277,7 +366,7 @@
               <g class="launch-flame" opacity="0" visibility="hidden">
                 <path
                   class="launch-flame-outer"
-                  d="M 0 0 C -34 14 -46 52 -40 78 C -36 100 -18 114 -6 118 C 0 120 6 118 22 114 C 40 100 44 78 40 78 C 48 52 36 14 0 0 Z"
+                  d="M 0 0 C -34 14 -46 50 -40 74 C -36 92 -16 108 0 112 C 16 108 36 92 40 74 C 46 50 34 14 0 0 Z"
                   fill="url(#launch-flame-outer)"
                   stroke="var(--rocket-ink)"
                   stroke-width="3.5"
@@ -285,7 +374,7 @@
                 />
                 <path
                   class="launch-flame-mid"
-                  d="M 0 5 C -26 18 -34 54 -30 76 C -26 94 -12 104 -4 106 C 0 108 4 106 16 104 C 28 94 32 76 30 76 C 36 54 28 18 0 5 Z"
+                  d="M 0 5 C -26 18 -32 48 -28 72 C -25 86 -12 96 0 98 C 12 96 25 86 28 72 C 32 48 26 18 0 5 Z"
                   fill="url(#launch-flame-mid)"
                   stroke="var(--rocket-ink)"
                   stroke-width="2.5"
@@ -311,7 +400,7 @@
                 />
                 <path
                   class="launch-flame-core"
-                  d="M 0 8 C -12 32 -14 64 -10 88 C -6 98 0 102 6 98 C 10 88 14 32 0 8 Z"
+                  d="M 0 8 C -12 30 -14 56 -8 82 C -4 90 4 90 8 82 C 14 56 12 30 0 8 Z"
                   fill="url(#launch-flame-core)"
                   stroke="var(--rocket-ink)"
                   stroke-width="2"
@@ -319,7 +408,7 @@
                 />
                 <path
                   class="launch-flame-hot"
-                  d="M 0 12 C -5 40 -5 72 0 96 C 5 72 5 40 0 12 Z"
+                  d="M 0 12 C -5 38 -8 70 -4 88 C -1 91 1 91 4 88 C 8 70 5 38 0 12 Z"
                   fill="var(--rocket-launch-flame-hot)"
                   opacity="0.82"
                 />

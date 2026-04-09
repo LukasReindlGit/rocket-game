@@ -13,8 +13,8 @@ const TARGET_MS = 10000;
  * `caption`: short line under the score (German UI).
  */
 const ROCKET_SCORE_RULES = [
-  { maxScoreMs: 150, scenario: "great", caption: "Glückwunsch — fast perfekt!" },
-  { maxScoreMs: 800, scenario: "meh", caption: "Solide — nächstes Mal noch genauer." },
+  { maxScoreMs: 750, scenario: "great", caption: "Glückwunsch — fast perfekt!" },
+  { maxScoreMs: 1700, scenario: "meh", caption: "Solide — nächstes Mal noch genauer." },
   { maxScoreMs: Infinity, scenario: "fail", caption: "Übung macht den Meister!" },
 ];
 
@@ -114,9 +114,13 @@ function render() {
   el.resultBlock.hidden = state !== "postPlay";
   el.buzzer.disabled = state === "postPlay";
 
-  if (state === "idle" || state === "running") {
+  if (state === "idle") {
     if (typeof window.resetRocketStage === "function") {
       window.resetRocketStage();
+    }
+  } else if (state === "running") {
+    if (typeof window.setRocketReadyForLaunch === "function") {
+      window.setRocketReadyForLaunch();
     }
   }
 
