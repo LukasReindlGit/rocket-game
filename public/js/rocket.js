@@ -131,9 +131,39 @@
     }
   }
 
+  /**
+   * Ready pose used a fixed ~0.58s smoke loop — easy to sync with for 10s timing.
+   * Clear inline animation overrides when leaving ready (idle / outcome animations).
+   */
+  function clearReadySmokeStyles() {
+    if (!stage) return;
+    stage
+      .querySelectorAll(".launch-prep-smoke ellipse.prep-smoke, .fumes .fume-puff")
+      .forEach((el) => {
+        el.style.removeProperty("animation");
+        el.style.removeProperty("animation-delay");
+      });
+  }
+
+  /**
+   * Random duration + phase per puff so pad smoke is not a metronome for the stopwatch round.
+   */
+  function randomizeReadySmokeAnimations() {
+    if (!stage) return;
+    stage
+      .querySelectorAll(".launch-prep-smoke ellipse.prep-smoke, .fumes .fume-puff")
+      .forEach((el) => {
+        const dur = 0.38 + Math.random() * 0.62;
+        const delay = Math.random() * dur;
+        el.style.animation = `ready-heavy-pulse ${dur.toFixed(3)}s ease-in-out infinite`;
+        el.style.animationDelay = `${delay.toFixed(3)}s`;
+      });
+  }
+
   /** Subtle fumes — default lobby / before start (game idle). */
   function applyIdlePose() {
     if (!stage) return;
+    clearReadySmokeStyles();
     stage.className = "rocket-stage-wrap rocket-stage rocket-stage--idle";
     if (statusEl) statusEl.textContent = "";
     setButtonsDisabled(false);
@@ -143,7 +173,9 @@
   /** Heavy pad smoke — "ready for launch" while the round is running (game running). */
   function applyReadyPose() {
     if (!stage) return;
+    clearReadySmokeStyles();
     stage.className = "rocket-stage-wrap rocket-stage rocket-stage--ready";
+    randomizeReadySmokeAnimations();
     if (statusEl) statusEl.textContent = "";
     setButtonsDisabled(false);
     busy = false;
@@ -157,6 +189,7 @@
     if (!cfg || !stage || busy) return;
 
     clearScenarioTimer();
+    clearReadySmokeStyles();
 
     busy = true;
     setButtonsDisabled(true);
