@@ -167,113 +167,22 @@
 }
 
 /*
- * Corner drift: one shared period so phases stay evenly spaced (stream, not a single pulse).
- * 18 puffs × delay step = period → each puff enters the cycle 1/18 apart.
+ * Ready-for-launch smoke: same idea as idle `fume-pulse`, but faster + larger motion + more layers.
+ * Period ~half of idle (1.2s); three staggered phases like the three idle puffs.
  */
-.rocket-stage--ready .prep-smoke--a {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+.rocket-stage--ready .launch-prep-smoke > ellipse:nth-child(3n + 1) {
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
   animation-delay: 0s;
 }
 
-.rocket-stage--ready .prep-smoke--b {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.153s;
+.rocket-stage--ready .launch-prep-smoke > ellipse:nth-child(3n + 2) {
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.193s;
 }
 
-.rocket-stage--ready .prep-smoke--c {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.306s;
-}
-
-.rocket-stage--ready .prep-smoke--d {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.459s;
-}
-
-.rocket-stage--ready .prep-smoke--e {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.611s;
-}
-
-.rocket-stage--ready .prep-smoke--f {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.764s;
-}
-
-.rocket-stage--ready .prep-smoke--g {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.917s;
-}
-
-.rocket-stage--ready .prep-smoke--h {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.069s;
-}
-
-.rocket-stage--ready .prep-smoke--i {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.222s;
-}
-
-.rocket-stage--ready .prep-smoke--j {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.375s;
-}
-
-.rocket-stage--ready .prep-smoke--k {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.528s;
-}
-
-.rocket-stage--ready .prep-smoke--l {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.681s;
-}
-
-.rocket-stage--ready .prep-smoke--m {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.833s;
-}
-
-.rocket-stage--ready .prep-smoke--n {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.986s;
-}
-
-.rocket-stage--ready .prep-smoke--o {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 2.139s;
-}
-
-.rocket-stage--ready .prep-smoke--p {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 2.292s;
-}
-
-.rocket-stage--ready .prep-smoke--q {
-  animation: ready-smoke-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 2.444s;
-}
-
-.rocket-stage--ready .prep-smoke--r {
-  animation: ready-smoke-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 2.597s;
-}
-
-/* Tight to the nozzle: same period, thirds of a phase so bob doesn’t sync with the drift pulse */
-.rocket-stage--ready .prep-smoke--near-1 {
-  animation: ready-smoke-linger-a 2.75s ease-in-out infinite;
-  animation-delay: 0s;
-}
-
-.rocket-stage--ready .prep-smoke--near-2 {
-  animation: ready-smoke-linger-b 2.75s ease-in-out infinite;
-  animation-delay: 0.917s;
-}
-
-.rocket-stage--ready .prep-smoke--near-3 {
-  animation: ready-smoke-linger-c 2.75s ease-in-out infinite;
-  animation-delay: 1.833s;
+.rocket-stage--ready .launch-prep-smoke > ellipse:nth-child(3n + 3) {
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.387s;
 }
 
 /* Idle: subtle fumes only */
@@ -289,7 +198,7 @@
   animation-delay: 0.7s;
 }
 
-/* Ready-for-launch: pad fumes also exit toward corners */
+/* Ready-for-launch: pad fumes — same heavy pulse, fifths of a cycle */
 .rocket-stage--idle .fumes .fume-puff:nth-child(4),
 .rocket-stage--idle .fumes .fume-puff:nth-child(5) {
   visibility: hidden;
@@ -298,32 +207,30 @@
 }
 
 .rocket-stage--ready .fumes .fume-puff:nth-child(1) {
-  animation: ready-fume-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
   animation-delay: 0s;
 }
 
 .rocket-stage--ready .fumes .fume-puff:nth-child(2) {
-  animation: ready-fume-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 0.55s;
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.116s;
 }
 
 .rocket-stage--ready .fumes .fume-puff:nth-child(3) {
-  animation: ready-fume-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.1s;
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.232s;
 }
 
 .rocket-stage--ready .fumes .fume-puff:nth-child(4) {
-  animation: ready-fume-exit-br 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 1.65s;
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.348s;
   visibility: visible;
-  opacity: 0.85;
 }
 
 .rocket-stage--ready .fumes .fume-puff:nth-child(5) {
-  animation: ready-fume-exit-bl 2.75s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  animation-delay: 2.2s;
+  animation: ready-heavy-pulse 0.58s ease-in-out infinite;
+  animation-delay: 0.464s;
   visibility: visible;
-  opacity: 0.85;
 }
 
 /* Extra pad puffs are ready-only; hide during outcome animations */
@@ -418,88 +325,16 @@
   }
 }
 
-/* +Y = down in SVG; exit past .rocket-stage-wrap overflow (corners of the frame) */
-@keyframes ready-smoke-exit-bl {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.88;
-  }
-  100% {
-    transform: translate(-155px, 118px) scale(1.35);
-    opacity: 0;
-  }
-}
-
-@keyframes ready-smoke-exit-br {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.88;
-  }
-  100% {
-    transform: translate(155px, 118px) scale(1.35);
-    opacity: 0;
-  }
-}
-
-@keyframes ready-fume-exit-bl {
-  0% {
-    opacity: 0.75;
-    transform: translate(0, 0) scale(1.06);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-130px, 102px) scale(1.32);
-  }
-}
-
-@keyframes ready-fume-exit-br {
-  0% {
-    opacity: 0.75;
-    transform: translate(0, 0) scale(1.06);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(130px, 102px) scale(1.32);
-  }
-}
-
-@keyframes ready-smoke-linger-a {
+/* Like fume-pulse, amplified (bigger + faster loop for .rocket-stage--ready) */
+@keyframes ready-heavy-pulse {
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.62;
+    opacity: 0.4;
+    transform: translateY(0) scale(1);
   }
   50% {
-    transform: translate(3px, 5px) scale(1.12);
-    opacity: 0.88;
-  }
-}
-
-@keyframes ready-smoke-linger-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.58;
-  }
-  50% {
-    transform: translate(-4px, 6px) scale(1.15);
-    opacity: 0.85;
-  }
-}
-
-@keyframes ready-smoke-linger-c {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.48;
-  }
-  33% {
-    transform: translate(-2px, 3px) scale(1.08);
-    opacity: 0.72;
-  }
-  66% {
-    transform: translate(2px, 6px) scale(1.1);
-    opacity: 0.65;
+    opacity: 0.98;
+    transform: translateY(22px) scale(1.42);
   }
 }
 
