@@ -290,10 +290,17 @@ initGameRocketCelebration();
 
 async function fetchLeaderboard() {
   try {
-    const res = await fetch("/api/leaderboard?limit=20");
+    const res = await fetch("/api/leaderboard?limit=20", { cache: "no-store" });
     if (!res.ok) return;
     const data = await res.json();
-    const entries = data.entries || [];
+    const entries = [...(data.entries || [])].sort((a, b) => {
+      const da = Number(a.score_ms);
+      const db = Number(b.score_ms);
+      const na = Number.isFinite(da) ? da : Infinity;
+      const nb = Number.isFinite(db) ? db : Infinity;
+      if (na !== nb) return na - nb;
+      return String(a.submitted_at || "").localeCompare(String(b.submitted_at || ""));
+    });
     if (entries.length === 0) {
       el.lbEmpty.hidden = false;
       el.lbList.hidden = true;
@@ -330,4 +337,4 @@ function escapeAttr(s) {
 }
 
 fetchLeaderboard();
-setInterval(fetchLeaderboard, 30000);
+setInterval(fetchLeaderboard, 10000);

@@ -1,0 +1,52 @@
+# Production stack: nginx-proxy + acme-companion + Marketing Time Game.
+# Create a .env file (see .env.example) before: docker compose up -d --build
+
+services:
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+    restart: unless-stopped
+
+  acme-companion:
+    image: nginxproxy/acme-companion:latest
+    container_name: acme-companion
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx-certs:/etc/nginx/certs
+      - nginx-vhost:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    environment:
+      - DEFAULT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      - nginx-proxy
+    restart: unless-stopped
+
+  marketing-time-game:
+    build: .
+    environment:
+      - VIRTUAL_HOST=${APP_HOST}
+      - LETSENCRYPT_HOST=${APP_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - VIRTUAL_PORT=3000
+      - PORT=3000
+      - SURVEY_HMAC_SECRET=${SURVEY_HMAC_SECRET}
+    volumes:
+      - ./data:/app/data
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+volumes:
+  nginx-certs:
+  nginx-vhost:
+  nginx-html:

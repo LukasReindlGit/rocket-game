@@ -265,6 +265,30 @@ function parseCSVLine(line) {
   return out;
 }
 
+/**
+ * Many CSV writers omit empty fields, so a row can have fewer columns than the
+ * header (e.g. missing empty nachname). Align to header length so we do not skip rows.
+ * When one column is missing, values shift left — insert "" before the email column:
+ * first field containing "@" at index >= 4 (submitted_at, nickname, vorname, …).
+ */
+function alignLeaderboardColumns(cols, header) {
+  const out = [...cols];
+  if (out.length === header.length - 1) {
+    const k = out.findIndex((c, i) => i >= 4 && String(c).includes("@"));
+    if (k >= 4) {
+      out.splice(k - 1, 0, "");
+    }
+  }
+  while (out.length < header.length) {
+    out.push("");
+  }
+  if (out.length > header.length) {
+    out[header.length - 1] = out.slice(header.length - 1).join(",");
+    out.length = header.length;
+  }
+  return out;
+}
+
 function readLeaderboard() {
   ensureDataFile();
   const raw = fs.readFileSync(DATA_PATH, "utf8");
@@ -275,7 +299,7 @@ function readLeaderboard() {
   const idx = (name) => header.indexOf(name);
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
+    let cols = alignLeaderboardColumns(parseCSVLine(lines[i]), header);
     if (cols.length < header.length) continue;
     const row = {};
     header.forEach((h, j) => {
@@ -310,7 +334,11 @@ function readLeaderboard() {
 
 function sortLeaderboard(rows) {
   return [...rows].sort((a, b) => {
-    if (a.score_ms !== b.score_ms) return a.score_ms - b.score_ms;
+    const sa = Number(a.score_ms);
+    const sb = Number(b.score_ms);
+    const da = Number.isFinite(sa) ? sa : Infinity;
+    const db = Number.isFinite(sb) ? sb : Infinity;
+    if (da !== db) return da - db;
     return String(a.submitted_at).localeCompare(String(b.submitted_at));
   });
 }
@@ -431,6 +459,7 @@ app.get("/api/leaderboard", (_req, res) => {
       score_ms: row.score_ms,
       elapsed_ms: row.elapsed_ms,
     }));
+    res.setHeader("Cache-Control", "no-store");
     res.json({ entries });
   } catch (e) {
     console.error(e);
