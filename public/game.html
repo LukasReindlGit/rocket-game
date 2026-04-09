@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>10 Sekunden Challenge — Salesfive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="app-bg" aria-hidden="true">
+      <img src="/content/images/bg-mesh.svg" alt="" />
+    </div>
+    <div class="shell" id="app-root" tabindex="-1">
+      <header class="brand">
+        <img src="/content/images/logo-placeholder.svg" alt="Salesfive" width="160" height="40" />
+        <div>
+          <h1>10 Sekunden Challenge</h1>
+          <p>Stoppe unsichtbar bei 10.000s — USB-Buzzer oder Leertaste</p>
+        </div>
+      </header>
+
+      <div class="layout">
+        <main class="panel">
+          <h2>Spiel</h2>
+          <div class="game-stage" id="game-stage" aria-live="polite">
+            <p class="state-hint" id="state-hint"></p>
+            <div id="running-visual" class="pulse-ring" hidden></div>
+            <div class="buzzer-wrap">
+              <button type="button" class="buzzer-btn" id="buzzer-btn" aria-label="Buzzer">
+                BUZZER
+              </button>
+            </div>
+            <p class="kbd-hint" id="kbd-hint"></p>
+            <div id="result-block" hidden>
+              <p class="result-big" id="result-delta"></p>
+              <p class="result-sub" id="result-elapsed"></p>
+              <div class="qr-block" id="qr-block">
+                <div id="qr-host"></div>
+                <p class="survey-url" id="survey-url"></p>
+              </div>
+              <div class="actions">
+                <button type="button" class="btn-secondary" id="btn-again">
+                  Nochmal spielen
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="panel leaderboard" id="leaderboard-panel">
+          <h2>Bestenliste</h2>
+          <p class="leaderboard-empty" id="leaderboard-empty">Noch keine Einträge.</p>
+          <ol id="leaderboard-list" hidden></ol>
+        </aside>
+      </div>
+    </div>
+    <script src="/js/game.js" defer></script>
+  </body>
+</html>
