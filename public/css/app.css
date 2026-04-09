@@ -292,8 +292,10 @@ body.game-page .layout .panel {
   appearance: none;
   border: none;
   cursor: pointer;
+  max-width: 80%;
   width: min(440px, min(95vw, 90vh));
-  height: min(440px, min(95vw, 90vh));
+  aspect-ratio: 1;
+  height: auto;
   border-radius: 50%;
   background: linear-gradient(165deg, #ef4444 0%, #b91c1c 100%);
   color: white;
@@ -909,8 +911,10 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
   }
 
   body.game-page .game-panel--controls .buzzer-btn {
+    max-width: 80%;
     width: min(240px, 52vmin);
-    height: min(240px, 52vmin);
+    aspect-ratio: 1;
+    height: auto;
     font-size: clamp(1rem, 4.8vmin, 1.85rem);
   }
 
