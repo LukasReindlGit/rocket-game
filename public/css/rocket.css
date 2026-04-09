@@ -1,0 +1,438 @@
+/* Rocket demo page — comic SVG + scenario animations */
+
+:root {
+  --rocket-paper: #fff8f0;
+  --rocket-ink: #0f172a;
+  --rocket-red: #e63946;
+  --rocket-red-dark: #c1121f;
+  --rocket-flame: #ff9f1c;
+  --rocket-flame-hot: #ffea00;
+  --rocket-smoke: #94a3b8;
+  --rocket-smoke-dark: #64748b;
+}
+
+.rocket-page {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+.rocket-page h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.rocket-page .rocket-lead {
+  color: var(--color-muted);
+  text-align: center;
+  max-width: 36rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.rocket-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.rocket-controls button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  border: 3px solid var(--rocket-ink);
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--rocket-ink);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.rocket-controls button:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--rocket-ink);
+}
+
+.rocket-controls button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--rocket-ink);
+}
+
+.rocket-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-great {
+  background: linear-gradient(180deg, #86efac 0%, #4ade80 100%);
+  color: var(--rocket-ink);
+}
+
+.btn-meh {
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+  color: var(--rocket-ink);
+}
+
+.btn-fail {
+  background: linear-gradient(180deg, #fca5a5 0%, #f87171 100%);
+  color: var(--rocket-ink);
+}
+
+.rocket-stage-wrap {
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 4 / 5;
+  border: 4px solid var(--rocket-ink);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 35%, #bae6fd 70%, var(--rocket-paper) 70%, #fed7aa 100%);
+  box-shadow: 8px 8px 0 rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+}
+
+#confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.rocket-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.star-burst {
+  opacity: 0;
+}
+
+.rocket-stage--idle .crack-lines,
+.rocket-stage--great .crack-lines,
+.rocket-stage--meh .crack-lines {
+  opacity: 0;
+}
+
+/* Scenario-only SVG layers */
+.launch-flame {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.rocket-stage--great .launch-flame {
+  visibility: visible;
+}
+
+/* Idle: fumes only */
+.rocket-stage--idle .fume-puff {
+  animation: fume-pulse 1.2s ease-in-out infinite;
+}
+
+.rocket-stage--idle .fume-puff:nth-child(2) {
+  animation-delay: 0.35s;
+}
+
+.rocket-stage--idle .fume-puff:nth-child(3) {
+  animation-delay: 0.7s;
+}
+
+.rocket-stage--idle .rocket-group {
+  animation: idle-bob 2.5s ease-in-out infinite;
+}
+
+.rocket-stage--idle .idle-flame {
+  opacity: 0.35;
+}
+
+@keyframes fume-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateY(6px) scale(1.08);
+  }
+}
+
+@keyframes idle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Hide scenario-only elements in idle */
+.rocket-stage--idle .launch-flame,
+.rocket-stage--idle .fail-burst,
+.rocket-stage--idle .meh-sweat {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Great success */
+.rocket-stage--great .idle-flame {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.rocket-stage--great .launch-flame {
+  opacity: 1;
+  visibility: visible;
+  transform-origin: top center;
+  transform-box: fill-box;
+  animation: launch-flame-burst 2.4s ease-out forwards;
+}
+
+.rocket-stage--great .rocket-group {
+  animation: launch-soar 2.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.rocket-stage--great .fume-puff {
+  animation: fume-launch 2.4s ease-out forwards;
+}
+
+.rocket-stage--great .star-burst {
+  animation: star-pop 0.5s ease-out 1.8s both;
+}
+
+@keyframes launch-flame-burst {
+  0% {
+    transform: scaleY(0.4);
+    opacity: 0.9;
+  }
+  15% {
+    transform: scaleY(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(2.2) translateY(20px);
+    opacity: 0.2;
+  }
+}
+
+@keyframes launch-soar {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  12% {
+    transform: translate(0, 8px) rotate(-2deg);
+  }
+  100% {
+    transform: translate(0, -280px) rotate(0deg);
+  }
+}
+
+@keyframes fume-launch {
+  0% {
+    opacity: 0.8;
+  }
+  30% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.3);
+  }
+}
+
+@keyframes star-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Meh */
+.rocket-stage--meh .idle-flame {
+  opacity: 0.5;
+}
+
+.rocket-stage--meh .rocket-group {
+  animation: meh-wobble 3.2s ease-in-out forwards;
+}
+
+.rocket-stage--meh .meh-sweat {
+  opacity: 1;
+  visibility: visible;
+  animation: sweat-drip 3.2s ease-in-out forwards;
+}
+
+.rocket-stage--meh .fume-puff {
+  animation: meh-fume 3.2s ease-in-out forwards;
+}
+
+@keyframes meh-wobble {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  18% {
+    transform: translate(0, -35px) rotate(-4deg);
+  }
+  35% {
+    transform: translate(0, -42px) rotate(3deg);
+  }
+  55% {
+    transform: translate(0, -38px) rotate(-6deg);
+  }
+  75% {
+    transform: translate(0, 15px) rotate(5deg);
+  }
+  100% {
+    transform: translate(0, 25px) rotate(0deg);
+  }
+}
+
+@keyframes sweat-drip {
+  0%,
+  15% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes meh-fume {
+  0%,
+  40% {
+    opacity: 0.7;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+/* Failure */
+.rocket-stage--fail .idle-flame {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.rocket-stage--fail .fail-burst {
+  opacity: 1;
+  visibility: visible;
+  animation: fail-smoke 2.6s ease-out forwards;
+}
+
+.rocket-stage--fail .rocket-group {
+  animation: fail-crash 2.6s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+}
+
+.rocket-stage--fail .fume-puff {
+  animation: fail-fume-out 2.6s ease-out forwards;
+}
+
+.rocket-stage--fail .crack-lines {
+  opacity: 1;
+  animation: crack-show 0.2s ease-out 1.4s both;
+}
+
+@keyframes fail-crash {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  22% {
+    transform: translate(0, -15px) rotate(-8deg);
+  }
+  45% {
+    transform: translate(25px, 40px) rotate(35deg);
+  }
+  70% {
+    transform: translate(10px, 95px) rotate(75deg);
+  }
+  100% {
+    transform: translate(-5px, 110px) rotate(95deg);
+  }
+}
+
+@keyframes fail-smoke {
+  0%,
+  40% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  55% {
+    opacity: 0.95;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.75;
+    transform: scale(1.35) translateY(-10px);
+  }
+}
+
+@keyframes fail-fume-out {
+  0%,
+  35% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) translateY(30px);
+  }
+}
+
+@keyframes crack-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+.rocket-status {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  text-align: center;
+  min-height: 1.5em;
+}
+
+.rocket-status strong {
+  color: var(--color-text);
+}
+
+.rocket-api-hint {
+  margin-top: 2rem;
+  padding: 1rem;
+  max-width: 36rem;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.rocket-api-hint code {
+  font-size: 0.78rem;
+  color: #7dd3fc;
+  word-break: break-all;
+}

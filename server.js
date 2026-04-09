@@ -339,6 +339,10 @@ app.get("/survey", (_req, res) => {
   res.sendFile(path.join(PUBLIC, "survey.html"));
 });
 
+app.get("/rocket", (_req, res) => {
+  res.sendFile(path.join(PUBLIC, "rocket.html"));
+});
+
 /**
  * Mint a signed survey URL token (score not readable without server secret).
  */
