@@ -11,8 +11,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/rocket-theme.css" />
+    <link rel="stylesheet" href="/css/rocket-bg.css" />
+    <link rel="stylesheet" href="/css/rocket.css" />
   </head>
-  <body>
+  <body class="game-page">
     <div class="app-bg" aria-hidden="true">
       <img src="/content/images/bg-mesh.svg" alt="" />
     </div>
@@ -30,6 +33,7 @@
           <h2 class="sr-only">Spiel</h2>
           <div class="game-stage" id="game-stage" aria-live="polite">
             <p class="state-hint" id="state-hint"></p>
+            <div id="game-rocket-wrap" class="game-rocket-wrap" aria-hidden="true"></div>
             <div id="running-visual" class="pulse-ring" hidden></div>
             <div class="buzzer-wrap">
               <button type="button" class="buzzer-btn" id="buzzer-btn" aria-label="Starten">
@@ -46,7 +50,8 @@
             <div id="result-block" hidden>
               <p class="result-big" id="result-delta"></p>
               <p class="result-sub" id="result-elapsed"></p>
-              <div class="qr-block" id="qr-block">
+              <p class="game-rocket-caption" id="game-rocket-caption" hidden></p>
+              <div class="qr-block" id="qr-block" hidden>
                 <div id="qr-host"></div>
                 <p class="survey-caption-wrap">
                   <a class="survey-caption" id="survey-link" href="#" hidden>Zum Formular</a>
@@ -73,6 +78,8 @@
         </aside>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="/js/rocket.js" defer></script>
     <script src="/js/game.js" defer></script>
   </body>
 </html>

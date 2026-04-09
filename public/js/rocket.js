@@ -4,6 +4,28 @@
   const CONFETTI_VAR_COUNT = 6;
   const CONFETTI_FALLBACK = ["#fde047", "#4ade80", "#38bdf8", "#f472b6", "#a78bfa", "#fb923c"];
 
+  /** @type {HTMLElement | null} */
+  let stage = null;
+  /** @type {HTMLElement | null} */
+  let statusEl = null;
+  /** @type {HTMLButtonElement | null} */
+  let btnGreat = null;
+  /** @type {HTMLButtonElement | null} */
+  let btnMeh = null;
+  /** @type {HTMLButtonElement | null} */
+  let btnFail = null;
+  /** @type {HTMLCanvasElement | null} */
+  let canvas = null;
+
+  let busy = false;
+  let resetTimer = 0;
+
+  const SCENARIOS = {
+    great: { className: "rocket-stage--great", durationMs: 4700, label: "Great success!" },
+    meh: { className: "rocket-stage--meh", durationMs: 3600, label: "Meh!" },
+    fail: { className: "rocket-stage--fail", durationMs: 3800, label: "Failure" },
+  };
+
   /**
    * Confetti colors come from `rocket-theme.css` (--rocket-confetti-0 …) so they stay editable as CSS.
    * @returns {string[]}
@@ -24,13 +46,6 @@
     return out.length > 0 ? out : CONFETTI_FALLBACK;
   }
 
-  const stage = document.getElementById("rocket-stage");
-  const statusEl = document.getElementById("rocket-status");
-  const btnGreat = document.getElementById("btn-great");
-  const btnMeh = document.getElementById("btn-meh");
-  const btnFail = document.getElementById("btn-fail");
-  const canvas = document.getElementById("confetti-canvas");
-
   /**
    * Global `confetti()` ignores a custom `canvas` option; it always uses an internal
    * full-page canvas. Bind to our stage canvas via `create` (see canvas-confetti docs).
@@ -47,15 +62,6 @@
     }
     return window.__rocketStageConfetti;
   }
-
-  const SCENARIOS = {
-    great: { className: "rocket-stage--great", durationMs: 4700, label: "Great success!" },
-    meh: { className: "rocket-stage--meh", durationMs: 3600, label: "Meh!" },
-    fail: { className: "rocket-stage--fail", durationMs: 3800, label: "Failure" },
-  };
-
-  let busy = false;
-  let resetTimer = 0;
 
   function resizeCanvas() {
     if (!canvas || !stage) return;
@@ -116,9 +122,8 @@
 
   function resetToIdle() {
     if (!stage) return;
-    stage.className =
-      "rocket-stage-wrap rocket-stage rocket-stage--idle";
-    statusEl.textContent = "";
+    stage.className = "rocket-stage-wrap rocket-stage rocket-stage--idle";
+    if (statusEl) statusEl.textContent = "";
     setButtonsDisabled(false);
     busy = false;
   }
@@ -140,7 +145,9 @@
     resizeCanvas();
 
     stage.className = `rocket-stage-wrap rocket-stage ${cfg.className}`;
-    statusEl.innerHTML = `Animation: <strong>${cfg.label}</strong>`;
+    if (statusEl) {
+      statusEl.innerHTML = `Animation: <strong>${cfg.label}</strong>`;
+    }
 
     if (key === "great") {
       setTimeout(fireConfetti, 650);
@@ -148,19 +155,53 @@
 
     resetTimer = window.setTimeout(() => {
       resetTimer = 0;
-      resetToIdle();
+      busy = false;
+      setButtonsDisabled(false);
+      if (statusEl) statusEl.textContent = "";
+      /* Keep `stage` on scenario class so the last animation frame stays visible until resetRocketStage() (e.g. game start screen). */
     }, cfg.durationMs);
   }
 
-  btnGreat?.addEventListener("click", () => playRocketScenario("great"));
-  btnMeh?.addEventListener("click", () => playRocketScenario("meh"));
-  btnFail?.addEventListener("click", () => playRocketScenario("fail"));
+  function resetRocketStage() {
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      resetTimer = 0;
+    }
+    resetToIdle();
+    resizeCanvas();
+  }
 
+  /**
+   * Wire rocket DOM under `scope` (container that holds `#rocket-stage` after injecting the partial).
+   * Demo page buttons use document-wide ids `btn-great` / `btn-meh` / `btn-fail`; optional `#rocket-status` for captions.
+   * @param {ParentNode} scope
+   */
+  function mountRocketStage(scope) {
+    if (!scope || typeof scope.querySelector !== "function") return;
+
+    stage = scope.querySelector("#rocket-stage");
+    canvas = scope.querySelector("#confetti-canvas");
+    statusEl = document.getElementById("rocket-status");
+
+    btnGreat = document.getElementById("btn-great");
+    btnMeh = document.getElementById("btn-meh");
+    btnFail = document.getElementById("btn-fail");
+
+    if (!stage || !canvas) return;
+
+    btnGreat?.addEventListener("click", () => playRocketScenario("great"));
+    btnMeh?.addEventListener("click", () => playRocketScenario("meh"));
+    btnFail?.addEventListener("click", () => playRocketScenario("fail"));
+
+    resizeCanvas();
+  }
+
+  window.mountRocketStage = mountRocketStage;
   window.playRocketScenario = playRocketScenario;
+  window.resetRocketStage = resetRocketStage;
 
   window.addEventListener("resize", () => {
-    if (busy) resizeCanvas();
+    if (stage) resizeCanvas();
   });
-
-  resizeCanvas();
 })();
+

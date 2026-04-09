@@ -5,6 +5,78 @@
 
 const TARGET_MS = 10000;
 
+/**
+ * Celebration rules: `scoreMs` is how far off 10.000 s the player was (lower is better).
+ * First matching rule wins (compare `scoreMs <= maxScoreMs`). Use `Infinity` on the last row as a catch-all.
+ *
+ * `scenario`: rocket animation id — "great" | "meh" | "fail" (see `/rocket` demo).
+ * `caption`: short line under the score (German UI).
+ */
+const ROCKET_SCORE_RULES = [
+  { maxScoreMs: 150, scenario: "great", caption: "Glückwunsch — fast perfekt!" },
+  { maxScoreMs: 800, scenario: "meh", caption: "Solide — nächstes Mal noch genauer." },
+  { maxScoreMs: Infinity, scenario: "fail", caption: "Übung macht den Meister!" },
+];
+
+/** @type {Promise<void>} */
+let rocketCelebrationReady = Promise.resolve();
+
+/**
+ * @param {number} scoreMs
+ * @returns {(typeof ROCKET_SCORE_RULES)[number] | null}
+ */
+function ruleForScore(scoreMs) {
+  for (const rule of ROCKET_SCORE_RULES) {
+    if (scoreMs <= rule.maxScoreMs) {
+      return rule;
+    }
+  }
+  const last = ROCKET_SCORE_RULES[ROCKET_SCORE_RULES.length - 1];
+  return last ?? null;
+}
+
+function initGameRocketCelebration() {
+  const wrap = document.getElementById("game-rocket-wrap");
+  if (!wrap || typeof window.mountRocketStage !== "function") return;
+  rocketCelebrationReady = fetch("/partials/rocket-stage.html")
+    .then((r) => {
+      if (!r.ok) throw new Error("rocket partial missing");
+      return r.text();
+    })
+    .then((html) => {
+      wrap.innerHTML = html;
+      window.mountRocketStage(wrap);
+      if (typeof window.resetRocketStage === "function") {
+        window.resetRocketStage();
+      }
+    })
+    .catch(() => {
+      /* Celebration is optional; game works without it */
+    });
+}
+
+/**
+ * @param {number} scoreMs
+ */
+function triggerRocketForScore(scoreMs) {
+  const rule = ruleForScore(scoreMs);
+  if (!rule) return;
+  rocketCelebrationReady.then(() => {
+    if (typeof window.playRocketScenario !== "function") return;
+    const cap = document.getElementById("game-rocket-caption");
+    if (cap) {
+      if (rule.caption) {
+        cap.textContent = rule.caption;
+        cap.hidden = false;
+      } else {
+        cap.textContent = "";
+        cap.hidden = true;
+      }
+    }
+    window.playRocketScenario(rule.scenario);
+  });
+}
+
 /** @type {'idle' | 'running' | 'postPlay'} */
 let state = "idle";
 let startMark = 0;
@@ -21,11 +93,13 @@ const el = {
   resultDelta: document.getElementById("result-delta"),
   resultElapsed: document.getElementById("result-elapsed"),
   qrHost: document.getElementById("qr-host"),
+  qrBlock: document.getElementById("qr-block"),
   surveyLink: document.getElementById("survey-link"),
   surveyUrlDetails: document.getElementById("survey-url-details"),
   surveyUrlFull: document.getElementById("survey-url-full"),
   surveyError: document.getElementById("survey-error"),
   btnAgain: document.getElementById("btn-again"),
+  gameRocketCaption: document.getElementById("game-rocket-caption"),
   lbEmpty: document.getElementById("leaderboard-empty"),
   lbList: document.getElementById("leaderboard-list"),
 };
@@ -40,6 +114,12 @@ function render() {
   el.resultBlock.hidden = state !== "postPlay";
   el.buzzer.disabled = state === "postPlay";
 
+  if (state === "idle" || state === "running") {
+    if (typeof window.resetRocketStage === "function") {
+      window.resetRocketStage();
+    }
+  }
+
   if (state === "idle") {
     el.buzzerLabel.textContent = "START";
     el.buzzer.setAttribute("aria-label", "Starten");
@@ -50,7 +130,7 @@ function render() {
     el.hint.textContent = "Zähle mit …";
   } else {
     el.buzzer.setAttribute("aria-label", "Runde beendet");
-    el.hint.textContent = "Scanne den QR-Code für die Bestenliste.";
+    el.hint.textContent = "QR-Code wird geladen …";
   }
 }
 
@@ -76,6 +156,7 @@ function onBuzzerAction(fromKeyboard) {
     setState("postPlay");
     el.resultDelta.textContent = `${lastScoreMs} ms daneben`;
     el.resultElapsed.textContent = `Gestoppt bei ${(elapsed / 1000).toFixed(3)} s`;
+    triggerRocketForScore(lastScoreMs);
     showQrForScore(lastScoreMs, Math.round(elapsed));
     queueMicrotask(() => el.btnAgain.focus({ preventScroll: true }));
     return;
@@ -89,6 +170,7 @@ function resetSurveyUi() {
   el.surveyUrlFull.textContent = "";
   el.surveyError.hidden = true;
   el.surveyError.textContent = "";
+  if (el.qrBlock) el.qrBlock.hidden = true;
 }
 
 async function showQrForScore(scoreMs, elapsedRounded) {
@@ -114,6 +196,8 @@ async function showQrForScore(scoreMs, elapsedRounded) {
     el.surveyError.textContent =
       "Ergebnis konnte nicht signiert werden — bitte Seite neu laden und erneut spielen.";
     el.surveyError.hidden = false;
+    if (el.qrBlock) el.qrBlock.hidden = false;
+    el.hint.textContent = "Formular-Link konnte nicht erstellt werden — siehe Hinweis unten.";
     return;
   }
   const params = new URLSearchParams({ t: token });
@@ -128,6 +212,21 @@ async function showQrForScore(scoreMs, elapsedRounded) {
   img.height = 240;
   img.alt = "QR-Code zum Formular";
   img.src = `/api/qr?u=${encodeURIComponent(url)}`;
+  /**
+   * @param {string} [hint] — defaults to scan instruction when QR is usable
+   */
+  function revealQrBlock(hint) {
+    if (el.qrBlock) el.qrBlock.hidden = false;
+    el.hint.textContent =
+      hint ?? "Scanne den QR-Code für die Bestenliste.";
+  }
+  img.addEventListener(
+    "load",
+    () => {
+      revealQrBlock();
+    },
+    { once: true }
+  );
   img.addEventListener("error", () => {
     el.qrHost.replaceChildren();
     const p = document.createElement("p");
@@ -135,8 +234,12 @@ async function showQrForScore(scoreMs, elapsedRounded) {
     p.textContent = "QR konnte nicht geladen werden — Link unten öffnen.";
     el.qrHost.appendChild(p);
     el.surveyUrlDetails.open = true;
+    revealQrBlock("QR-Anzeige fehlgeschlagen — Link unten zum Formular nutzen.");
   });
   el.qrHost.appendChild(img);
+  if (img.complete && img.naturalWidth > 0) {
+    revealQrBlock();
+  }
 }
 
 function onKeyDown(e) {
@@ -154,12 +257,17 @@ el.btnAgain.addEventListener("click", () => {
   setState("idle");
   el.qrHost.replaceChildren();
   resetSurveyUi();
+  if (el.gameRocketCaption) {
+    el.gameRocketCaption.textContent = "";
+    el.gameRocketCaption.hidden = true;
+  }
 });
 
 window.addEventListener("keydown", onKeyDown);
 
 el.root.focus({ preventScroll: true });
 setState("idle");
+initGameRocketCelebration();
 
 async function fetchLeaderboard() {
   try {

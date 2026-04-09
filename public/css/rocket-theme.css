@@ -1,6 +1,7 @@
 /* Rocket palette — edit here; VS Code shows color swatches next to hex values. */
 
-body.page-rocket {
+body.page-rocket,
+body.game-page {
   --rocket-page-background: #0f172a;
   --rocket-bg-mesh: url("/content/images/bg-mesh.svg");
   --rocket-bg-mesh-opacity: 0.85;
