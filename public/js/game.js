@@ -156,8 +156,15 @@ function isBuzzerKey(e) {
   return e.code === "Space" || e.code === "Enter";
 }
 
-function onBuzzerAction(fromKeyboard) {
-  if (fromKeyboard && state === "postPlay") {
+/**
+ * Synthetic events (e.g. element.click() from DevTools) are not trusted — ignore for anti-abuse.
+ * @param {Event | undefined} ev
+ */
+function onBuzzerAction(ev) {
+  if (!ev || ev.isTrusted !== true) {
+    return;
+  }
+  if (state === "postPlay") {
     return;
   }
 
@@ -264,15 +271,19 @@ async function showQrForScore(scoreMs, elapsedRounded) {
 function onKeyDown(e) {
   if (!isBuzzerKey(e)) return;
   if (e.repeat) return;
+  if (e.isTrusted !== true) return;
   if (state === "postPlay") {
     return;
   }
   e.preventDefault();
-  onBuzzerAction(true);
+  onBuzzerAction(e);
 }
 
-el.buzzer.addEventListener("click", () => onBuzzerAction(false));
-el.btnAgain.addEventListener("click", () => {
+el.buzzer.addEventListener("click", (e) => onBuzzerAction(e));
+el.btnAgain.addEventListener("click", (e) => {
+  if (!e.isTrusted) {
+    return;
+  }
   setState("idle");
   el.qrHost.replaceChildren();
   resetSurveyUi();

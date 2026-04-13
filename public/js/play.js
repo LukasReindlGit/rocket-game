@@ -74,7 +74,13 @@ function isBuzzerKey(e) {
   return e.code === "Space" || e.code === "Enter";
 }
 
-function onBuzzerAction() {
+/**
+ * @param {Event | undefined} ev
+ */
+function onBuzzerAction(ev) {
+  if (!ev || ev.isTrusted !== true) {
+    return;
+  }
   if (state === "postPlay") return;
 
   if (state === "idle") {
@@ -179,19 +185,23 @@ async function showQrForScore(scoreMs, elapsedRounded) {
 function onKeyDown(e) {
   if (!isBuzzerKey(e)) return;
   if (e.repeat) return;
+  if (e.isTrusted !== true) return;
   if (state === "postPlay") return;
   e.preventDefault();
-  onBuzzerAction();
+  onBuzzerAction(e);
 }
 
 if (el.hit) {
   el.hit.addEventListener("click", (e) => {
     e.preventDefault();
-    onBuzzerAction();
+    onBuzzerAction(e);
   });
 }
 if (el.btnAgain) {
-  el.btnAgain.addEventListener("click", () => {
+  el.btnAgain.addEventListener("click", (e) => {
+    if (!e.isTrusted) {
+      return;
+    }
     setState("idle");
     if (el.qrHost) el.qrHost.replaceChildren();
     resetSurveyUi();

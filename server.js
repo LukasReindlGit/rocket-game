@@ -18,6 +18,48 @@ if (!process.env.SURVEY_HMAC_SECRET) {
 
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
+/** Must match game logic: TARGET 10.000 s → score = |elapsed − 10s| (rounded). */
+const GAME_TARGET_MS = 10000;
+
+/**
+ * @param {number} elapsedRounded
+ * @returns {number}
+ */
+function expectedScoreMsFromElapsed(elapsedRounded) {
+  return Math.round(Math.abs(elapsedRounded - GAME_TARGET_MS));
+}
+
+/** Simple sliding-window rate limit for POST /api/mint-survey-token (abuse / scripted mint). */
+const MINT_RATE_WINDOW_MS = 60_000;
+const MINT_RATE_MAX = 45;
+const mintRateByIp = new Map();
+
+function clientIp(req) {
+  const xff = req.headers["x-forwarded-for"];
+  if (typeof xff === "string" && xff.length > 0) {
+    const first = xff.split(",")[0].trim();
+    if (first) return first;
+  }
+  return req.socket?.remoteAddress || "unknown";
+}
+
+function allowMintRequest(ip) {
+  const now = Date.now();
+  let list = mintRateByIp.get(ip);
+  if (!list) {
+    list = [];
+    mintRateByIp.set(ip, list);
+  }
+  while (list.length > 0 && now - list[0] > MINT_RATE_WINDOW_MS) {
+    list.shift();
+  }
+  if (list.length >= MINT_RATE_MAX) {
+    return false;
+  }
+  list.push(now);
+  return true;
+}
+
 const explicitPort =
   Object.prototype.hasOwnProperty.call(process.env, "PORT") &&
   process.env.PORT !== "";
@@ -205,6 +247,11 @@ function verifySurveyToken(tokenStr) {
   const elapsed_ms = payload.e == null ? null : Number(payload.e);
   if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) return null;
   if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) return null;
+  if (elapsed_ms != null && Number.isFinite(elapsed_ms)) {
+    if (elapsed_ms < 500 || elapsed_ms > 120000) return null;
+    const exp = expectedScoreMsFromElapsed(elapsed_ms);
+    if (Math.abs(Math.round(score_ms) - exp) > 1) return null;
+  }
   return { score_ms: Math.round(score_ms), elapsed_ms: elapsed_ms == null ? null : Math.round(elapsed_ms) };
 }
 
@@ -363,6 +410,27 @@ function appendRow(row) {
 
 const app = express();
 app.disable("x-powered-by");
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+      "img-src 'self' data: blob: https:",
+      "script-src 'self' https://cdn.jsdelivr.net",
+      "style-src 'self' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "connect-src 'self'",
+    ].join("; ")
+  );
+  next();
+});
+
 app.use(express.json({ limit: "32kb" }));
 app.use("/content", express.static(CONTENT));
 
@@ -428,15 +496,30 @@ app.get("/leaderboard", (_req, res) => {
  * Mint a signed survey URL token (score not readable without server secret).
  */
 app.post("/api/mint-survey-token", (req, res) => {
+  const ip = clientIp(req);
+  if (!allowMintRequest(ip)) {
+    return res.status(429).json({ error: "rate_limited" });
+  }
+
   const body = req.body || {};
   const score_ms = Number(body.score_ms);
   const elapsed_ms = body.elapsed_ms == null ? null : Number(body.elapsed_ms);
+
   if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) {
     return res.status(400).json({ error: "invalid_score" });
   }
-  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) {
-    return res.status(400).json({ error: "invalid_elapsed" });
+  if (elapsed_ms == null || !Number.isFinite(elapsed_ms)) {
+    return res.status(400).json({ error: "elapsed_required" });
   }
+  if (elapsed_ms < 500 || elapsed_ms > 120000) {
+    return res.status(400).json({ error: "invalid_elapsed_range" });
+  }
+
+  const expected = expectedScoreMsFromElapsed(elapsed_ms);
+  if (Math.abs(score_ms - expected) > 1) {
+    return res.status(400).json({ error: "score_elapsed_mismatch" });
+  }
+
   const token = mintSurveyToken(score_ms, elapsed_ms);
   res.json({ token });
 });
