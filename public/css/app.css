@@ -153,6 +153,7 @@ body.survey-page .brand__titles {
 body.game-page {
   --game-side-card: minmax(260px, min(42vw, 400px));
   --game-rocket-frame-w: 800px;
+  --game-card-max-h: min(800px, calc(100dvh - 10rem));
 }
 
 body.game-page .brand {
@@ -160,8 +161,38 @@ body.game-page .brand {
   margin-bottom: 3rem;
 }
 
-body.game-page .layout .panel {
-  min-height: 800px;
+/* Main game cards: bounded height; wide layout stretches rocket + button cards to one row height. */
+body.game-page .game-panels > .panel {
+  max-height: var(--game-card-max-h);
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+body.game-page .layout > .leaderboard {
+  max-height: var(--game-card-max-h);
+  min-height: 0;
+  align-self: start;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+body.game-page .game-panel--play {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+body.game-page .game-panel--play .game-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .game-panels {
@@ -171,7 +202,7 @@ body.game-page .layout .panel {
   min-width: 0;
 }
 
-/* Wide layout: rocket | (button card XOR Ergebnis card) — equal width side column */
+/* Wide layout: rocket | (button card XOR Ergebnis card) — equal width side column, equal row height */
 @media (min-width: 720px) {
   body.game-page .game-panels:has(#game-panel-controls:not([hidden])):not(:has(#game-panel-result:not([hidden]))),
   body.game-page .game-panels:has(#game-panel-result:not([hidden])) {
@@ -206,6 +237,8 @@ body.game-page .layout .panel {
   justify-content: center;
   gap: 1rem;
   text-align: center;
+  min-height: 0;
+  height: 100%;
 }
 
 .game-panel--controls .state-hint {
@@ -218,18 +251,38 @@ body.game-page .layout .panel {
   display: none !important;
 }
 
+#game-panel-result[hidden] {
+  display: none !important;
+}
+
 .game-panel--controls .buzzer-wrap {
   margin-top: 0;
 }
 
 .game-panel--result {
-  align-self: start;
+  align-self: stretch;
+}
+
+body.game-page .game-panel--result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  height: 100%;
+}
+
+body.game-page .game-panel--result #result-block {
+  flex: 1 1 auto;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
 }
 
 @media (min-width: 900px) {
   .layout {
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
     align-items: start;
+    min-height: 0;
   }
 }
 
@@ -257,7 +310,7 @@ body.game-page .layout .panel {
 
 .game-stage {
   text-align: center;
-  min-height: min(52vh, 520px);
+  min-height: min(40vh, 360px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -757,6 +810,14 @@ body.game-page #game-rocket-wrap {
   margin-right: auto;
 }
 
+/* Shrink with the play card when it stretches to match the buzzer column */
+body.game-page .game-panel--play #game-rocket-wrap {
+  max-height: 100%;
+  flex-shrink: 1;
+  min-height: 0;
+  align-self: center;
+}
+
 /* rocket.css caps .rocket-stage-wrap at 420px — fill the game wrapper instead */
 body.game-page #game-rocket-wrap .rocket-stage-wrap {
   width: 100%;
@@ -801,19 +862,52 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
   (max-height: 560px) and (min-width: 480px) {
   body.game-page {
     overflow-x: clip;
+    --game-card-max-h: min(800px, calc(100dvh - 5.5rem));
   }
 
   body.game-page .shell {
     min-height: 100vh;
     min-height: 100dvh;
+    max-height: 100dvh;
     padding: clamp(0.35rem, 1.2vmin, 1rem);
     box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Let the main grid shrink — fixed tall cards overflowed iPad landscape. */
+  body.game-page .game-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  body.game-page .game-panels {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  body.game-page .game-panels > .panel {
+    min-height: 0;
+  }
+
+  body.game-page .game-panel--play {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   body.game-page .brand {
     flex-direction: row;
     align-items: center;
     gap: 0.65rem;
+    margin-top: 0.35rem;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
   }
 
   body.game-page .brand img {
@@ -831,7 +925,9 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
 
   body.game-page .layout {
     gap: 0.65rem;
-    align-items: stretch;
+    align-items: start;
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   /* Side-by-side main column + leaderboard */
@@ -841,10 +937,9 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
     }
 
     body.game-page .leaderboard {
-      max-height: calc(100vh - 4.5rem);
-      max-height: calc(100dvh - 4.5rem);
+      max-height: min(var(--game-card-max-h), calc(100dvh - 4.5rem));
       overflow: hidden;
-      align-self: stretch;
+      align-self: start;
     }
 
     body.game-page #leaderboard-list {
@@ -859,8 +954,7 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
 
   /* Ergebnis card: scroll inside panel if needed */
   body.game-page .game-panel--result {
-    max-height: calc(100vh - 5rem);
-    max-height: calc(100dvh - 5rem);
+    max-height: var(--game-card-max-h);
     overflow-y: auto;
     min-height: 0;
   }
@@ -879,16 +973,22 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
     margin: 0;
   }
 
-  /* Same fixed rocket size as base game page (do not shrink in landscape) */
+  /* Cap rocket height so play + buzzer + leaderboard fit in one landscape screen */
   body.game-page #game-rocket-wrap {
     overflow: hidden;
+    max-width: min(100%, var(--game-rocket-frame-w, 800px), 70vmin);
+    max-height: min(46dvh, 380px, 52vw);
+    width: auto;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   body.game-page #game-rocket-wrap .rocket-stage-wrap {
     width: 100%;
+    max-width: 100%;
     height: auto;
-    max-width: none;
-    max-height: none;
+    max-height: min(46dvh, 380px);
   }
 
   /* Narrow landscape: leaderboard stays short so the page does not grow past the viewport */
