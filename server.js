@@ -71,6 +71,9 @@ if (explicitPort && !Number.isFinite(listenPort)) {
 const LISTEN_PORT_MAX = 3010;
 const ROOT = __dirname;
 const DATA_PATH = path.join(ROOT, "data", "leaderboard.csv");
+const BLOCKLIST_PATH = process.env.BLOCKLIST_PATH
+  ? path.resolve(process.env.BLOCKLIST_PATH)
+  : path.join(ROOT, "data", "blocklist.txt");
 const PUBLIC = path.join(ROOT, "public");
 const CONTENT = path.join(ROOT, "content");
 
@@ -408,6 +411,150 @@ function appendRow(row) {
   fs.appendFileSync(DATA_PATH, line, "utf8");
 }
 
+/** Used when the blocklist file is missing or empty. */
+const FALLBACK_BLOCKLIST = [
+  "hitler",
+  "nazi",
+  "fuck",
+  "shit",
+  "bitch",
+  "cunt",
+  "nigger",
+  "rape",
+  "porn",
+  "whore",
+  "slut",
+  "faggot",
+  "retard",
+  "hure",
+  "scheisse",
+  "fick",
+  "wichser",
+];
+
+const MAX_BLOCK_WORDS = 120_000;
+
+/** @type {Set<string>} */
+const usernameBlockWords = new Set();
+/** @type {string[]} */
+const usernameBlockPhrases = [];
+
+function addBlockTermsFromText(text) {
+  const lines = text.split(/\r?\n/);
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+    const low = line.toLowerCase().normalize("NFC");
+    if (/\s/.test(low)) {
+      usernameBlockPhrases.push(low.replace(/\s+/g, " ").trim());
+    } else if (low.length > 0) {
+      usernameBlockWords.add(low);
+    }
+  }
+}
+
+function loadUsernameBlocklist() {
+  usernameBlockWords.clear();
+  usernameBlockPhrases.length = 0;
+
+  let loadedFromFile = false;
+  try {
+    if (fs.existsSync(BLOCKLIST_PATH)) {
+      const txt = fs.readFileSync(BLOCKLIST_PATH, "utf8");
+      addBlockTermsFromText(txt);
+      loadedFromFile = true;
+      console.log(
+        `Username blocklist: loaded ${BLOCKLIST_PATH} (${txt.split(/\r?\n/).length} lines)`
+      );
+    } else {
+      console.warn(
+        `Username blocklist: file not found (${BLOCKLIST_PATH}); using embedded fallback`
+      );
+    }
+  } catch (e) {
+    console.warn(
+      `Username blocklist: could not read ${BLOCKLIST_PATH}:`,
+      e.message || e
+    );
+  }
+
+  if (
+    !loadedFromFile ||
+    (usernameBlockWords.size === 0 && usernameBlockPhrases.length === 0)
+  ) {
+    console.warn("Username blocklist: using embedded fallback");
+    FALLBACK_BLOCKLIST.forEach((w) => usernameBlockWords.add(w));
+  }
+
+  if (usernameBlockWords.size > MAX_BLOCK_WORDS) {
+    const keep = [...usernameBlockWords].slice(0, MAX_BLOCK_WORDS);
+    usernameBlockWords.clear();
+    keep.forEach((w) => usernameBlockWords.add(w));
+    console.warn(`Username blocklist: capped words to ${MAX_BLOCK_WORDS}`);
+  }
+
+  console.log(
+    `Username blocklist ready: ${usernameBlockWords.size} words, ${usernameBlockPhrases.length} phrases`
+  );
+}
+
+function leetFoldToken(tok) {
+  let s = String(tok).toLowerCase();
+  const pairs = [
+    ["0", "o"],
+    ["1", "i"],
+    ["3", "e"],
+    ["4", "a"],
+    ["5", "s"],
+    ["7", "t"],
+    ["@", "a"],
+    ["$", "s"],
+  ];
+  for (const [a, b] of pairs) {
+    s = s.split(a).join(b);
+  }
+  return s;
+}
+
+function normalizeFieldSpaces(s) {
+  return s.normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function fieldContainsBlockedContent(field) {
+  if (!field || typeof field !== "string") return false;
+  const n = field.normalize("NFC").toLowerCase();
+  const spaced = normalizeFieldSpaces(field);
+
+  for (const phrase of usernameBlockPhrases) {
+    if (phrase && spaced.includes(phrase)) return true;
+  }
+
+  const tokenRe = /[\p{L}\p{M}\p{N}]+/gu;
+  let m;
+  const tokens = new Set();
+  while ((m = tokenRe.exec(n)) !== null) {
+    const tok = m[0].toLowerCase();
+    if (tok.length < 2) continue;
+    tokens.add(tok);
+    tokens.add(leetFoldToken(tok));
+  }
+  for (const tok of tokens) {
+    if (tok.length < 2) continue;
+    if (usernameBlockWords.has(tok)) return true;
+    if (usernameBlockWords.has(leetFoldToken(tok))) return true;
+  }
+  return false;
+}
+
+function submitNameFieldsContainBlocked(parts) {
+  return (
+    fieldContainsBlockedContent(parts.nickname) ||
+    fieldContainsBlockedContent(parts.vorname) ||
+    fieldContainsBlockedContent(parts.nachname) ||
+    fieldContainsBlockedContent(parts.company)
+  );
+}
+
 const app = express();
 app.disable("x-powered-by");
 
@@ -581,6 +728,16 @@ app.post("/api/submit", (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: "invalid_email" });
   }
+  if (
+    submitNameFieldsContainBlocked({
+      nickname,
+      vorname,
+      nachname,
+      company,
+    })
+  ) {
+    return res.status(400).json({ error: "inappropriate_content" });
+  }
 
   const submitted_at = new Date().toISOString();
   try {
@@ -609,8 +766,6 @@ app.use(express.static(PUBLIC));
 app.use((_req, res) => {
   res.status(404).send("Not found");
 });
-
-ensureDataFile();
 
 const server = http.createServer(app);
 
@@ -648,4 +803,15 @@ server.on("error", (err) => {
   tryListen();
 });
 
-tryListen();
+function boot() {
+  ensureDataFile();
+  loadUsernameBlocklist();
+  tryListen();
+}
+
+try {
+  boot();
+} catch (err) {
+  console.error(err);
+  process.exit(1);
+}

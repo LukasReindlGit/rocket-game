@@ -80,9 +80,11 @@ el.form.addEventListener("submit", async (e) => {
           ? "Nickname, Vorname, Nachname, Unternehmen und E-Mail sind Pflichtfelder."
           : data.error === "invalid_email"
             ? "Bitte gültige E-Mail eingeben."
-            : data.error === "invalid_or_expired_token"
+            :         data.error === "invalid_or_expired_token"
             ? "Das Ergebnis ist ungültig oder abgelaufen — bitte erneut spielen und QR scannen."
-            : "Senden fehlgeschlagen. Bitte später erneut versuchen.";
+            : data.error === "inappropriate_content"
+              ? "Bitte wähle einen anderen Namen oder Unternehmensangabe ohne unangemessene Begriffe."
+              : "Senden fehlgeschlagen. Bitte später erneut versuchen.";
       el.msgError.hidden = false;
       el.btnSubmit.disabled = false;
       return;
