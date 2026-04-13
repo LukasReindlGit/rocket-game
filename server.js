@@ -414,6 +414,16 @@ app.get("/rocket", (_req, res) => {
   res.sendFile(path.join(PUBLIC, "rocket.html"));
 });
 
+/** Redesigned game (visible timer); original remains at /game */
+app.get("/play", (_req, res) => {
+  res.sendFile(path.join(PUBLIC, "play.html"));
+});
+
+/** Leaderboard kiosk (e.g. iPad); data from /api/leaderboard */
+app.get("/leaderboard", (_req, res) => {
+  res.sendFile(path.join(PUBLIC, "leaderboard.html"));
+});
+
 /**
  * Mint a signed survey URL token (score not readable without server secret).
  */
@@ -530,10 +540,8 @@ function tryListen() {
     }
     const vHost = process.env.VIRTUAL_HOST;
     const primaryHost = vHost ? vHost.split(",")[0].trim() : "";
-    const gameUrl = primaryHost
-      ? `https://${primaryHost}/game`
-      : `http://localhost:${listenPort}/game`;
-    console.log(`Marketing Time Game ${gameUrl}`);
+    const base = primaryHost ? `https://${primaryHost}` : `http://localhost:${listenPort}`;
+    console.log(`Marketing Time Game ${base}/game  |  redesign ${base}/play  |  leaderboard ${base}/leaderboard`);
   });
 }
 

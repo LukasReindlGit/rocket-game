@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>10 Sekunden — Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/play.css" />
+  </head>
+  <body class="play-screen">
+    <button type="button" class="play-hit" id="play-hit" aria-label="Timer starten oder stoppen"></button>
+    <div class="play-ui">
+      <div class="play-wrap">
+        <div class="play-time" id="play-time" aria-live="polite">00.00</div>
+        <div class="play-hint-row">
+          <p class="play-hint">
+            PUSCH BUTTON TO START TIMER // PUSH AGAIN TO STOP IT
+          </p>
+        </div>
+        <p class="play-goal">GOAL IS 10.00</p>
+      </div>
+    </div>
+
+    <div class="play-result" id="play-result" hidden role="dialog" aria-modal="true" aria-labelledby="play-result-title">
+      <div class="play-result-inner">
+        <h2 id="play-result-title" class="sr-only">Ergebnis</h2>
+        <p class="play-result-delta" id="play-result-delta"></p>
+        <p class="play-result-elapsed" id="play-result-elapsed"></p>
+        <div class="play-qr-wrap" id="play-qr-block" hidden>
+          <div id="play-qr-host"></div>
+          <p>
+            <a class="play-survey-link" id="play-survey-link" href="#" hidden>Zum Formular</a>
+          </p>
+          <details class="play-survey-details" id="play-survey-details" hidden>
+            <summary>Link anzeigen</summary>
+            <p class="play-url-full" id="play-survey-url-full"></p>
+          </details>
+          <p class="play-error" id="play-survey-error" hidden></p>
+        </div>
+        <div class="play-actions">
+          <button type="button" class="play-btn" id="play-btn-again">Nochmal spielen</button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
+    <script src="/js/play.js" defer></script>
+  </body>
+</html>

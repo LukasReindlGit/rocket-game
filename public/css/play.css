@@ -1,0 +1,397 @@
+/* Redesign v2 — /play + /leaderboard shared tokens */
+:root {
+  --play-fg: #00d5dc;
+  --play-bg: #000058;
+  --play-secondary: #f7f7f9;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body.play-screen {
+  font-family: "Orbitron", system-ui, sans-serif;
+  background: var(--play-bg);
+  color: var(--play-fg);
+  min-height: 100dvh;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.play-wrap {
+  --play-pad: clamp(1rem, 4vw, 2.5rem);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--play-pad);
+  text-align: center;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.play-time {
+  /* Monospace digits so the clock does not shift when numbers change */
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  /*
+   * Caps by viewport width (~5 chars wide) and height (space for copy under timer).
+   * Wide screens still reach up to 42rem when both dimensions allow.
+   */
+  font-size: clamp(
+    3.5rem,
+    min(
+      42rem,
+      calc((100vw - 2 * var(--play-pad)) / 2.75),
+      calc((100dvh - 13rem) / 1.85)
+    ),
+    42rem
+  );
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  /* Cyan glow — visible but not harsh */
+  text-shadow:
+    0 0 7px rgba(180, 255, 255, 0.52),
+    0 0 20px rgba(0, 213, 220, 0.62),
+    0 0 44px rgba(0, 213, 220, 0.42),
+    0 0 82px rgba(0, 213, 220, 0.24),
+    0 0 128px rgba(0, 213, 220, 0.14);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  display: inline-block;
+  min-width: 6ch;
+  text-align: center;
+}
+
+.play-hint-row {
+  margin: clamp(1rem, 3vw, 1.75rem) 0 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  text-align: center;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 213, 220, 0.45) transparent;
+}
+
+.play-hint {
+  display: inline-block;
+  margin: 0;
+  white-space: nowrap;
+  font-size: clamp(1rem, 3.2vw, 1.45rem);
+  font-weight: 500;
+  color: var(--play-secondary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.play-goal {
+  margin-top: clamp(1.25rem, 3.5vw, 2rem);
+  font-size: clamp(1.45rem, 4.8vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.play-hit {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: transparent;
+}
+
+.play-hit:focus-visible {
+  outline: 2px solid var(--play-fg);
+  outline-offset: -4px;
+}
+
+.play-ui {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.play-ui a {
+  pointer-events: auto;
+}
+
+/* Result overlay */
+.play-result {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 88, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.play-result[hidden] {
+  display: none !important;
+}
+
+.play-result-inner {
+  max-width: 36rem;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.play-result-delta {
+  font-size: clamp(2rem, 6.5vw, 3.1rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.play-result-elapsed {
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
+  color: var(--play-secondary);
+  margin: 0 0 1.25rem;
+}
+
+.play-qr-wrap {
+  margin: 1rem 0;
+}
+
+.play-qr-wrap img {
+  max-width: min(100%, 320px);
+  height: auto;
+  border-radius: 8px;
+}
+
+.play-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.play-btn {
+  font-family: inherit;
+  font-size: clamp(1.1rem, 2.8vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.25rem;
+  border: 2px solid var(--play-fg);
+  background: transparent;
+  color: var(--play-fg);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.play-btn:hover,
+.play-btn:focus-visible {
+  background: rgba(0, 213, 220, 0.15);
+}
+
+.play-survey-link {
+  color: var(--play-secondary);
+  font-size: clamp(1.05rem, 2.6vw, 1.25rem);
+}
+
+.play-error {
+  color: #ffb4b4;
+  font-size: clamp(0.95rem, 2.4vw, 1.1rem);
+  margin-top: 0.5rem;
+}
+
+.play-survey-details {
+  margin-top: 0.75rem;
+  text-align: left;
+  color: var(--play-secondary);
+  font-size: clamp(0.95rem, 2.4vw, 1.1rem);
+}
+
+.play-survey-details summary {
+  cursor: pointer;
+  color: var(--play-fg);
+}
+
+.play-url-full {
+  word-break: break-all;
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.85rem, 2.2vw, 1rem);
+}
+
+/* Leaderboard kiosk — single column, one row per player */
+body.leaderboard-screen {
+  font-family: "Orbitron", system-ui, sans-serif;
+  background: var(--play-bg);
+  color: var(--play-fg);
+  min-height: 100dvh;
+  margin: 0;
+}
+
+.lb-shell {
+  min-height: 100dvh;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.lb-hero {
+  text-align: center;
+  margin-bottom: clamp(1.75rem, 5vw, 2.75rem);
+}
+
+.lb-brand {
+  font-size: clamp(1.75rem, 5.5vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  margin: 0;
+  text-shadow: 0 0 20px rgba(0, 213, 220, 0.35);
+}
+
+.lb-sub {
+  margin: clamp(0.65rem, 2vw, 1rem) 0 0;
+  font-size: clamp(0.85rem, 2.4vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--play-secondary);
+  text-transform: uppercase;
+}
+
+.lb-goal-line {
+  margin: clamp(0.5rem, 1.5vw, 0.85rem) 0 0;
+  font-size: clamp(0.95rem, 2.6vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--play-secondary);
+  opacity: 0.9;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+}
+
+.lb-empty {
+  text-align: center;
+  color: var(--play-secondary);
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+}
+
+.lb-table {
+  width: 100%;
+}
+
+/* Column header — same grid as rows for alignment */
+.lb-col-header {
+  display: grid;
+  grid-template-columns: minmax(4.25rem, 7rem) minmax(0, 1fr) minmax(5.5rem, 9rem);
+  align-items: baseline;
+  column-gap: clamp(1rem, 3.5vw, 2.25rem);
+  padding: 0 0 clamp(0.65rem, 2vw, 0.85rem);
+  margin-bottom: clamp(0.35rem, 1vw, 0.5rem);
+  border-bottom: 1px solid rgba(0, 213, 220, 0.35);
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--play-secondary);
+  text-transform: uppercase;
+}
+
+.lb-h-rank {
+  text-align: left;
+}
+
+.lb-h-name {
+  text-align: left;
+}
+
+.lb-h-dev {
+  text-align: right;
+}
+
+.lb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: minmax(4.25rem, 7rem) minmax(0, 1fr) minmax(5.5rem, 9rem);
+  align-items: center;
+  column-gap: clamp(1rem, 3.5vw, 2.25rem);
+  padding: clamp(0.55rem, 1.8vw, 0.85rem) clamp(0.35rem, 1.2vw, 0.5rem);
+  background: rgba(0, 213, 220, 0.06);
+  border: 1px solid rgba(0, 213, 220, 0.22);
+  border-radius: 6px;
+}
+
+/* Top 3: stronger panel + cyan border glow */
+.lb-list .lb-row:nth-child(-n + 3) {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 213, 220, 0.18) 0%,
+    rgba(0, 213, 220, 0.08) 50%,
+    rgba(0, 80, 120, 0.12) 100%
+  );
+  border: 1px solid rgba(0, 213, 220, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 213, 220, 0.15),
+    0 0 20px rgba(0, 213, 220, 0.22),
+    0 0 48px rgba(0, 213, 220, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.lb-rank {
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: clamp(1.05rem, 3vw, 1.75rem);
+  font-weight: 700;
+  color: var(--play-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+
+.lb-name {
+  font-size: clamp(0.95rem, 2.6vw, 1.5rem);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  min-width: 0;
+}
+
+.lb-dev {
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  font-size: clamp(0.95rem, 2.6vw, 1.5rem);
+  font-weight: 700;
+  color: var(--play-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lb-list .lb-row:nth-child(-n + 3) .lb-rank {
+  font-size: clamp(1.55rem, 4.5vw, 2.75rem);
+}
+
+.lb-list .lb-row:nth-child(-n + 3) .lb-name {
+  font-size: clamp(1.35rem, 3.9vw, 2.25rem);
+}
+
+.lb-list .lb-row:nth-child(-n + 3) .lb-dev {
+  font-size: clamp(1.35rem, 3.9vw, 2.25rem);
+}
