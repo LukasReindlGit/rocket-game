@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Leaderboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/play.css" />
+  </head>
+  <body class="leaderboard-screen">
+    <div class="lb-shell">
+      <header class="lb-hero">
+        <h1 class="lb-brand">LEADERBOARD</h1>
+        <p class="lb-sub">PRECISION RANKING</p>
+        <p class="lb-goal-line">// GOAL: 10.00s</p>
+      </header>
+
+      <p class="lb-empty" id="lb-empty">Noch keine Einträge.</p>
+
+      <div class="lb-table" id="lb-table" hidden>
+        <div class="lb-col-header" aria-hidden="true">
+          <span class="lb-h-rank">RANK</span>
+          <span class="lb-h-name">NICKNAME</span>
+          <span class="lb-h-dev">DEVIATION</span>
+        </div>
+        <ol class="lb-list" id="lb-list"></ol>
+      </div>
+    </div>
+    <script src="/js/leaderboard-display.js" defer></script>
+  </body>
+</html>

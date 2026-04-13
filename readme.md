@@ -1,22 +1,21 @@
-für ein messe event möchten wir ein spiel haben: 
-man startet die zeit und muss nach exakt 10sec auf den buzzer drücken. ist wohl gerade ein trend. (bitte online prüfen).
+Für ein Messe-Event möchten wir ein Spiel haben:
+Man startet die Zeit und muss nach exakt 10 s auf den Buzzer drücken. Ist wohl gerade ein Trend (bitte online prüfen).
 
-nachdem man gespielt hat, wird er QR code angezeigt. wenn man ihn mit dem handy scannt, kommt man auf einen form in dem man seinen namen eingeben kann. 
-- name
-- email
-- nickname
-- die Bestzeit (wie weit man neben der 10sec marke lag) wird automatisch über den QR code übergeben.
+Nachdem man gespielt hat, wird ein QR-Code angezeigt. Wenn man ihn mit dem Handy scannt, kommt man auf ein Formular, in dem man seinen Namen eingeben kann.
+- Name
+- E-Mail
+- Nickname
+- Die Bestzeit (wie weit man neben der 10-Sekunden-Marke lag) wird automatisch über den QR-Code übergeben.
 
-
-Bestenliste wird auf der seite des spiels angezeigt.
+Die Bestenliste wird auf der Seite des Spiels angezeigt.
 
 
 ## Technisch
 
-alles muss auf einem webserver laufen. leaderboard ist eine einfache csv.
-der server bietet die endpunkte "game" und "survey?time=13".
+Alles muss auf einem Webserver laufen. Das Leaderboard ist eine einfache CSV.
+Der Server bietet die Endpunkte `/game` und `/survey?…`.
 
-Das spiel läuft in einem browser in fullscreen an der messe. die zeitberechnung läuft lokal um das internet nicht zu belasten.
+Das Spiel läuft in einem Browser im Vollbild an der Messe. Die Zeitberechnung läuft lokal, um das Internet nicht zu belasten.
 
 Der Buzzer ist ein **physisches USB-Gerät** und verhält sich meist wie eine **Tastatur**: ein Tastendruck (typisch **Leertaste** oder **Enter**) = Buzzer. Im Frontend per Keyboard-Events abfangen.
 
