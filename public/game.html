@@ -104,9 +104,85 @@
         </main>
 
         <aside class="panel leaderboard" id="leaderboard-panel">
-          <h2>Bestenliste</h2>
-          <p class="leaderboard-empty" id="leaderboard-empty">Noch keine Einträge.</p>
-          <ol id="leaderboard-list" hidden></ol>
+          <h2 class="leaderboard-heading">Bestenlisten</h2>
+          <div class="leaderboard-tabs">
+            <div
+              class="leaderboard-tablist"
+              role="tablist"
+              aria-label="Bestenliste"
+            >
+              <button
+                type="button"
+                class="leaderboard-tab"
+                role="tab"
+                id="lb-tab-all"
+                aria-selected="true"
+                aria-controls="lb-panel-all"
+                tabindex="0"
+              >
+                Gesamt
+              </button>
+              <button
+                type="button"
+                class="leaderboard-tab"
+                role="tab"
+                id="lb-tab-day"
+                aria-selected="false"
+                aria-controls="lb-panel-day"
+                tabindex="-1"
+              >
+                Tag
+              </button>
+              <button
+                type="button"
+                class="leaderboard-tab"
+                role="tab"
+                id="lb-tab-week"
+                aria-selected="false"
+                aria-controls="lb-panel-week"
+                tabindex="-1"
+              >
+                Woche
+              </button>
+            </div>
+            <div class="leaderboard-tabpanels">
+              <div
+                class="leaderboard-tabpanel"
+                role="tabpanel"
+                id="lb-panel-all"
+                aria-labelledby="lb-tab-all"
+              >
+                <p class="leaderboard-empty" id="leaderboard-empty-all">
+                  Noch keine Einträge.
+                </p>
+                <ol id="leaderboard-list-all" class="leaderboard-list" hidden></ol>
+              </div>
+              <div
+                class="leaderboard-tabpanel"
+                role="tabpanel"
+                id="lb-panel-day"
+                aria-labelledby="lb-tab-day"
+                hidden
+              >
+                <p class="leaderboard-empty" id="leaderboard-empty-day">
+                  Heute noch keine Einträge.
+                </p>
+                <ol id="leaderboard-list-day" class="leaderboard-list" hidden></ol>
+              </div>
+              <div
+                class="leaderboard-tabpanel"
+                role="tabpanel"
+                id="lb-panel-week"
+                aria-labelledby="lb-tab-week"
+                hidden
+              >
+                <p class="leaderboard-empty" id="leaderboard-empty-week">
+                  Diese Woche noch keine Einträge.
+                </p>
+                <ol id="leaderboard-list-week" class="leaderboard-list" hidden></ol>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
     </div>

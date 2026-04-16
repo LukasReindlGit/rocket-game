@@ -393,6 +393,87 @@ function sortLeaderboard(rows) {
   });
 }
 
+/** Used for “today” / “this week” filters (German event timezone). */
+const LEADERBOARD_TZ = "Europe/Berlin";
+
+/**
+ * @param {string | Date} isoOrDate
+ * @returns {{ y: number, m: number, d: number } | null}
+ */
+function berlinCalendarParts(isoOrDate) {
+  const d =
+    typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(d.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: LEADERBOARD_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const y = Number(parts.find((p) => p.type === "year")?.value);
+  const m = Number(parts.find((p) => p.type === "month")?.value);
+  const day = Number(parts.find((p) => p.type === "day")?.value);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(day)) {
+    return null;
+  }
+  return { y, m, d: day };
+}
+
+/**
+ * ISO-8601 week (Mon–Sun), keyed by the Thursday that defines the week, using
+ * Berlin civil calendar components for the instant.
+ * @param {number} y
+ * @param {number} m
+ * @param {number} d
+ * @returns {string}
+ */
+function isoWeekThursdayKeyFromYMD(y, m, d) {
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  const dow = dt.getUTCDay();
+  const isoD = dow === 0 ? 7 : dow;
+  dt.setUTCDate(dt.getUTCDate() + (4 - isoD));
+  return `${dt.getUTCFullYear()}-${dt.getUTCMonth() + 1}-${dt.getUTCDate()}`;
+}
+
+/**
+ * @param {string} isoA
+ * @param {string | Date} isoB
+ */
+function sameBerlinDay(isoA, isoB) {
+  const pa = berlinCalendarParts(isoA);
+  const pb = berlinCalendarParts(isoB);
+  if (!pa || !pb) return false;
+  return pa.y === pb.y && pa.m === pb.m && pa.d === pb.d;
+}
+
+/**
+ * @param {string} isoA
+ * @param {string | Date} isoB
+ */
+function sameBerlinIsoWeek(isoA, isoB) {
+  const pa = berlinCalendarParts(isoA);
+  const pb = berlinCalendarParts(isoB);
+  if (!pa || !pb) return false;
+  return (
+    isoWeekThursdayKeyFromYMD(pa.y, pa.m, pa.d) ===
+    isoWeekThursdayKeyFromYMD(pb.y, pb.m, pb.d)
+  );
+}
+
+/**
+ * @param {ReturnType<typeof readLeaderboard>} rows
+ * @param {'day' | 'week'} period
+ * @param {Date} [now]
+ */
+function filterLeaderboardByPeriod(rows, period, now = new Date()) {
+  return rows.filter((row) => {
+    if (!row.submitted_at) return false;
+    if (period === "day") return sameBerlinDay(row.submitted_at, now);
+    if (period === "week") return sameBerlinIsoWeek(row.submitted_at, now);
+    return true;
+  });
+}
+
 function appendRow(row) {
   ensureDataFile();
   const line =
@@ -691,7 +772,19 @@ app.get("/api/survey-token-info", (req, res) => {
 
 app.get("/api/leaderboard", (_req, res) => {
   try {
-    const sorted = sortLeaderboard(readLeaderboard());
+    let period = String(_req.query.period ?? "all").toLowerCase();
+    if (period !== "day" && period !== "week") {
+      period = "all";
+    }
+    const rows = readLeaderboard();
+    const scoped =
+      period === "all"
+        ? rows
+        : filterLeaderboardByPeriod(
+            rows,
+            /** @type {'day' | 'week'} */ (period)
+          );
+    const sorted = sortLeaderboard(scoped);
     const limit = Math.min(50, Math.max(1, Number(_req.query.limit) || 20));
     const entries = sorted.slice(0, limit).map((row) => ({
       submitted_at: row.submitted_at,
@@ -700,7 +793,7 @@ app.get("/api/leaderboard", (_req, res) => {
       elapsed_ms: row.elapsed_ms,
     }));
     res.setHeader("Cache-Control", "no-store");
-    res.json({ entries });
+    res.json({ entries, period });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "leaderboard_read_failed" });

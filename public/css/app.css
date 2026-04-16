@@ -524,15 +524,88 @@ body.game-page .leaderboard {
   scrollbar-width: thin;
 }
 
-body.game-page .leaderboard h2 {
+body.game-page .leaderboard .leaderboard-heading {
   flex-shrink: 0;
-  margin-bottom: 0;
+  margin-bottom: 0.5rem;
 }
 
-body.game-page #leaderboard-list {
+body.game-page .leaderboard-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+body.game-page .leaderboard-tablist {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+body.game-page .leaderboard-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0.4rem 0.35rem;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+body.game-page .leaderboard-tab:hover {
+  color: rgba(248, 250, 252, 0.92);
+  background: rgba(148, 163, 184, 0.1);
+}
+
+body.game-page .leaderboard-tab[aria-selected="true"] {
+  color: var(--color-surface, #0f172a);
+  background: rgba(248, 250, 252, 0.95);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.game-page .leaderboard-tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+body.game-page .leaderboard-tabpanels {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+body.game-page .leaderboard-tabpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+body.game-page .leaderboard-tabpanel[hidden] {
+  display: none !important;
+}
+
+body.game-page .leaderboard-tabpanel .leaderboard-list {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: min(50vh, 460px);
   max-height: min(50svh, 460px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -942,8 +1015,8 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
       align-self: start;
     }
 
-    body.game-page #leaderboard-list {
-      max-height: none;
+    body.game-page .leaderboard-tabpanel .leaderboard-list {
+      max-height: min(42svh, 360px);
       flex: 1 1 auto;
     }
 
@@ -1000,13 +1073,18 @@ body.game-page #game-rocket-wrap .rocket-stage-wrap {
       font-size: 0.88rem;
     }
 
-    body.game-page #leaderboard-list {
-      max-height: none;
+    body.game-page .leaderboard-tabpanel .leaderboard-list {
+      max-height: min(36svh, 280px);
     }
 
-    body.game-page .leaderboard h2 {
+    body.game-page .leaderboard .leaderboard-heading {
       font-size: 0.75rem;
-      margin-bottom: 0;
+      margin-bottom: 0.35rem;
+    }
+
+    body.game-page .leaderboard-tab {
+      font-size: 0.68rem;
+      padding: 0.35rem 0.25rem;
     }
   }
 

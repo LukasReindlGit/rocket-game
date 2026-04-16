@@ -101,8 +101,12 @@ const el = {
   surveyError: document.getElementById("survey-error"),
   btnAgain: document.getElementById("btn-again"),
   gameRocketCaption: document.getElementById("game-rocket-caption"),
-  lbEmpty: document.getElementById("leaderboard-empty"),
-  lbList: document.getElementById("leaderboard-list"),
+  lbEmptyAll: document.getElementById("leaderboard-empty-all"),
+  lbListAll: document.getElementById("leaderboard-list-all"),
+  lbEmptyDay: document.getElementById("leaderboard-empty-day"),
+  lbListDay: document.getElementById("leaderboard-list-day"),
+  lbEmptyWeek: document.getElementById("leaderboard-empty-week"),
+  lbListWeek: document.getElementById("leaderboard-list-week"),
 };
 
 function setState(next) {
@@ -299,37 +303,68 @@ el.root.focus({ preventScroll: true });
 setState("idle");
 initGameRocketCelebration();
 
-async function fetchLeaderboard() {
-  try {
-    const res = await fetch("/api/leaderboard?limit=20", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = await res.json();
-    const entries = [...(data.entries || [])].sort((a, b) => {
-      const da = Number(a.score_ms);
-      const db = Number(b.score_ms);
-      const na = Number.isFinite(da) ? da : Infinity;
-      const nb = Number.isFinite(db) ? db : Infinity;
-      if (na !== nb) return na - nb;
-      return String(a.submitted_at || "").localeCompare(String(b.submitted_at || ""));
-    });
-    if (entries.length === 0) {
-      el.lbEmpty.hidden = false;
-      el.lbList.hidden = true;
-      return;
-    }
-    el.lbEmpty.hidden = true;
-    el.lbList.hidden = false;
-    el.lbList.replaceChildren();
-    entries.forEach((row, i) => {
-      const li = document.createElement("li");
-      const name = row.display || "—";
-      li.innerHTML = `
+/**
+ * @param {unknown[]} entries
+ */
+function sortLeaderboardEntries(entries) {
+  return [...entries].sort((a, b) => {
+    const da = Number(a.score_ms);
+    const db = Number(b.score_ms);
+    const na = Number.isFinite(da) ? da : Infinity;
+    const nb = Number.isFinite(db) ? db : Infinity;
+    if (na !== nb) return na - nb;
+    return String(a.submitted_at || "").localeCompare(String(b.submitted_at || ""));
+  });
+}
+
+/**
+ * @param {unknown[]} entries
+ * @param {HTMLElement | null} emptyEl
+ * @param {HTMLOListElement | null} listEl
+ */
+function renderLeaderboardBlock(entries, emptyEl, listEl) {
+  if (!emptyEl || !listEl) return;
+  if (entries.length === 0) {
+    emptyEl.hidden = false;
+    listEl.hidden = true;
+    return;
+  }
+  emptyEl.hidden = true;
+  listEl.hidden = false;
+  listEl.replaceChildren();
+  entries.forEach((row, i) => {
+    const li = document.createElement("li");
+    const name = row.display || "—";
+    li.innerHTML = `
         <span class="lb-rank">${i + 1}.</span>
         <span class="lb-name" title="${escapeAttr(name)}">${escapeHtml(name)}</span>
         <span class="lb-score">${row.score_ms} ms</span>
       `;
-      el.lbList.appendChild(li);
+    listEl.appendChild(li);
+  });
+}
+
+async function fetchLeaderboard() {
+  const limit = 15;
+  const load = async (period) => {
+    const q =
+      period === "all" ? "" : `&period=${encodeURIComponent(period)}`;
+    const res = await fetch(`/api/leaderboard?limit=${limit}${q}`, {
+      cache: "no-store",
     });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return sortLeaderboardEntries(data.entries || []);
+  };
+  try {
+    const [all, day, week] = await Promise.all([
+      load("all"),
+      load("day"),
+      load("week"),
+    ]);
+    renderLeaderboardBlock(all, el.lbEmptyAll, el.lbListAll);
+    renderLeaderboardBlock(day, el.lbEmptyDay, el.lbListDay);
+    renderLeaderboardBlock(week, el.lbEmptyWeek, el.lbListWeek);
   } catch (_) {
     /* ignore */
   }
@@ -347,5 +382,95 @@ function escapeAttr(s) {
   return escapeHtml(s).replace(/'/g, "&#39;");
 }
 
+const lbTabs = /** @type {HTMLButtonElement[]} */ ([
+  document.getElementById("lb-tab-all"),
+  document.getElementById("lb-tab-day"),
+  document.getElementById("lb-tab-week"),
+].filter(Boolean));
+
+const lbPanels = /** @type {HTMLElement[]} */ ([
+  document.getElementById("lb-panel-all"),
+  document.getElementById("lb-panel-day"),
+  document.getElementById("lb-panel-week"),
+].filter(Boolean));
+
+const LB_TAB_STORAGE_KEY = "marketing-time-game:leaderboard-tab";
+/** @type {const} */ const LB_TAB_PERIODS = ["all", "day", "week"];
+
+/**
+ * @returns {number}
+ */
+function readStoredLeaderboardTabIndex() {
+  try {
+    const raw = localStorage.getItem(LB_TAB_STORAGE_KEY);
+    if (raw == null || raw === "") return 0;
+    const i = LB_TAB_PERIODS.indexOf(raw);
+    return i >= 0 ? i : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * @param {number} index
+ */
+function persistLeaderboardTabIndex(index) {
+  const id = LB_TAB_PERIODS[index];
+  if (!id) return;
+  try {
+    localStorage.setItem(LB_TAB_STORAGE_KEY, id);
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+/**
+ * @param {number} index
+ * @param {boolean} [focusTab]
+ */
+function setLeaderboardTab(index, focusTab) {
+  const n = lbTabs.length;
+  if (n === 0) return;
+  const i = ((index % n) + n) % n;
+  lbTabs.forEach((tab, j) => {
+    const selected = j === i;
+    tab.setAttribute("aria-selected", selected ? "true" : "false");
+    tab.tabIndex = selected ? 0 : -1;
+  });
+  lbPanels.forEach((panel, j) => {
+    panel.hidden = j !== i;
+  });
+  persistLeaderboardTabIndex(i);
+  if (focusTab) {
+    lbTabs[i]?.focus({ preventScroll: true });
+  }
+}
+
+function initLeaderboardTabs() {
+  if (lbTabs.length !== lbPanels.length || lbTabs.length === 0) return;
+
+  lbTabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => setLeaderboardTab(i, false));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setLeaderboardTab(i + 1, true);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setLeaderboardTab(i - 1, true);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setLeaderboardTab(0, true);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setLeaderboardTab(lbTabs.length - 1, true);
+      }
+    });
+  });
+
+  setLeaderboardTab(readStoredLeaderboardTabIndex(), false);
+}
+
+initLeaderboardTabs();
 fetchLeaderboard();
 setInterval(fetchLeaderboard, 10000);
