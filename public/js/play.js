@@ -1,6 +1,6 @@
 /**
  * Redesign — /play: visible stopwatch, goal 10.000 s (display 10.00 s).
- * Space / Enter = buzzer. Uses same survey token + leaderboard API as /game.
+ * Space / Enter / K = buzzer. Uses same survey token + leaderboard API as /game.
  */
 
 const TARGET_MS = 10000;
@@ -71,7 +71,7 @@ function setState(next) {
 }
 
 function isBuzzerKey(e) {
-  return e.code === "Space" || e.code === "Enter";
+  return e.code === "Space" || e.code === "Enter" || e.code === "KeyK";
 }
 
 /**
@@ -103,6 +103,18 @@ function onBuzzerAction(ev) {
     showQrForScore(lastScoreMs, Math.round(elapsed));
     queueMicrotask(() => el.btnAgain?.focus({ preventScroll: true }));
   }
+}
+
+/**
+ * @param {Event | undefined} ev
+ */
+function playAgainFromTrusted(ev) {
+  if (!ev || ev.isTrusted !== true) {
+    return;
+  }
+  setState("idle");
+  if (el.qrHost) el.qrHost.replaceChildren();
+  resetSurveyUi();
 }
 
 function resetSurveyUi() {
@@ -186,7 +198,11 @@ function onKeyDown(e) {
   if (!isBuzzerKey(e)) return;
   if (e.repeat) return;
   if (e.isTrusted !== true) return;
-  if (state === "postPlay") return;
+  if (state === "postPlay") {
+    e.preventDefault();
+    playAgainFromTrusted(e);
+    return;
+  }
   e.preventDefault();
   onBuzzerAction(e);
 }
@@ -198,14 +214,7 @@ if (el.hit) {
   });
 }
 if (el.btnAgain) {
-  el.btnAgain.addEventListener("click", (e) => {
-    if (!e.isTrusted) {
-      return;
-    }
-    setState("idle");
-    if (el.qrHost) el.qrHost.replaceChildren();
-    resetSurveyUi();
-  });
+  el.btnAgain.addEventListener("click", playAgainFromTrusted);
 }
 
 window.addEventListener("keydown", onKeyDown);
