@@ -13,97 +13,324 @@
 
 html,
 body {
+  width: 100%;
   height: 100%;
   margin: 0;
 }
 
 body.play-screen {
+  --play-pad-screen: 3vh 3vw;
+  width: 100%;
   font-family: "Orbitron", system-ui, sans-serif;
-  background: var(--play-bg);
-  color: var(--play-fg);
+  background:
+    radial-gradient(circle at top center, rgba(0, 213, 220, 0.18), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(0, 213, 220, 0.08), transparent 30%),
+    linear-gradient(180deg, color-mix(in srgb, var(--play-bg) 78%, #0a0a7a), var(--play-bg));
+  color: var(--play-secondary);
   min-height: 100dvh;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  display: flex;
 }
 
-.play-wrap {
-  --play-pad: clamp(1rem, 4vw, 2.5rem);
+/* —— example.html layout; Farben nur über --play-* / rgba(0,213,220) —— */
+body.play-screen .screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  padding: var(--play-pad-screen);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--play-bg) 70%, transparent),
+    color-mix(in srgb, var(--play-bg) 92%, #000020)
+  );
+  overflow: hidden;
+}
+
+body.play-screen .screen::before {
+  content: "";
+  position: absolute;
+  inset: 1.2vw;
+  border: 1px solid rgba(0, 213, 220, 0.12);
+  border-radius: 1.2vw;
+  pointer-events: none;
+}
+
+body.play-screen .screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(0, 213, 220, 0.08), transparent 20%),
+    radial-gradient(circle at 15% 80%, rgba(0, 213, 220, 0.05), transparent 25%);
+  pointer-events: none;
+}
+
+body.play-screen .corners span {
+  position: absolute;
+  width: 2vw;
+  height: 2vw;
+  min-width: 18px;
+  min-height: 18px;
+  border-color: rgba(0, 213, 220, 0.45);
+  border-style: solid;
+  pointer-events: none;
+}
+
+body.play-screen .corners .tl {
+  top: 1vw;
+  left: 1vw;
+  border-width: 2px 0 0 2px;
+}
+
+body.play-screen .corners .tr {
+  top: 1vw;
+  right: 1vw;
+  border-width: 2px 2px 0 0;
+}
+
+body.play-screen .corners .bl {
+  bottom: 1vw;
+  left: 1vw;
+  border-width: 0 0 2px 2px;
+}
+
+body.play-screen .corners .br {
+  bottom: 1vw;
+  right: 1vw;
+  border-width: 0 2px 2px 0;
+}
+
+body.play-screen .layout {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   align-items: center;
-  justify-content: center;
-  padding: var(--play-pad);
+}
+
+body.play-screen .header {
+  text-align: center;
+  font-size: clamp(18px, 1.2vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: rgba(247, 247, 249, 0.92);
+  text-transform: uppercase;
+  padding-top: 1vh;
+}
+
+body.play-screen .center {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  align-items: start;
+  justify-items: center;
   text-align: center;
   min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-.play-time {
-  /* Monospace digits so the clock does not shift when numbers change */
+body.play-screen .center.is-playing .delta {
+  visibility: hidden;
+}
+
+body.play-screen .time {
+  margin: 0;
   font-family: "Share Tech Mono", ui-monospace, monospace;
-  /*
-   * Caps by viewport width (~5 chars wide) and height (space for copy under timer).
-   * Wide screens still reach up to 42rem when both dimensions allow.
-   */
-  font-size: clamp(
-    3.5rem,
-    min(
-      42rem,
-      calc((100vw - 2 * var(--play-pad)) / 2.75),
-      calc((100dvh - 13rem) / 1.85)
-    ),
-    42rem
-  );
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1;
-  /* Cyan glow — visible but not harsh */
+  font-size: clamp(120px, 13vw, 280px);
+  line-height: 0.9;
+  font-weight: 800;
+  color: var(--play-fg);
   text-shadow:
-    0 0 7px rgba(180, 255, 255, 0.52),
-    0 0 20px rgba(0, 213, 220, 0.62),
-    0 0 44px rgba(0, 213, 220, 0.42),
-    0 0 82px rgba(0, 213, 220, 0.24),
-    0 0 128px rgba(0, 213, 220, 0.14);
+    0 0 10px rgba(0, 213, 220, 0.45),
+    0 0 30px rgba(0, 213, 220, 0.3),
+    0 0 80px rgba(0, 213, 220, 0.12);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   display: inline-block;
-  min-width: 6ch;
+  min-width: 8.5ch;
   text-align: center;
 }
 
-.play-hint-row {
-  margin: clamp(1rem, 3vw, 1.75rem) 0 0;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  text-align: center;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 213, 220, 0.45) transparent;
-}
-
-.play-hint {
-  display: inline-block;
-  margin: 0;
-  white-space: nowrap;
-  font-size: clamp(1rem, 3.2vw, 1.45rem);
-  font-weight: 500;
-  color: var(--play-secondary);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.5;
-  opacity: 0.92;
-}
-
-.play-goal {
-  margin-top: clamp(1.25rem, 3.5vw, 2rem);
-  font-size: clamp(1.45rem, 4.8vw, 2.4rem);
+body.play-screen .time-label {
+  margin-top: 1vh;
+  font-size: clamp(18px, 1.4vw, 32px);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.25em;
+  color: var(--play-fg);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  max-width: 96vw;
+  text-align: center;
+}
+
+body.play-screen .time-label::before,
+body.play-screen .time-label::after {
+  content: "";
+  width: 5vw;
+  max-width: 90px;
+  height: 1px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 213, 220, 0.9), transparent);
+}
+
+body.play-screen .delta {
+  margin-top: 2vh;
+  font-size: clamp(42px, 4vw, 88px);
+  font-weight: 800;
+  color: #ffffff;
+}
+
+body.play-screen .sub {
+  margin-top: 0.5vh;
+  font-size: clamp(16px, 1.1vw, 28px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--play-secondary) 45%, var(--play-fg));
+}
+
+body.play-screen section.bottom {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body.play-screen .bottom-inner {
+  display: grid;
+  grid-template-columns: 18vw 1fr;
+  gap: 3vw;
+  align-items: center;
+  width: 100%;
+  padding: 0 8vw 5vh;
+}
+
+body.play-screen .qr-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+body.play-screen .qr-box {
+  width: 14vw;
+  height: 14vw;
+  min-width: 170px;
+  min-height: 170px;
+  max-width: 280px;
+  max-height: 280px;
+  padding: 0.8vw;
+  border: 2px solid rgba(0, 213, 220, 0.6);
+  border-radius: 0.6vw;
+  background: rgba(0, 0, 88, 0.92);
+  box-shadow:
+    0 0 20px rgba(0, 213, 220, 0.18),
+    inset 0 0 18px rgba(0, 213, 220, 0.08);
+}
+
+body.play-screen .qr-box .qr {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background:
+    linear-gradient(90deg, var(--play-fg) 10px, transparent 10px) 0 0 / 20px 20px,
+    linear-gradient(var(--play-fg) 10px, transparent 10px) 0 0 / 20px 20px,
+    linear-gradient(90deg, transparent 10px, var(--play-fg) 10px) 0 0 / 20px 20px,
+    linear-gradient(transparent 10px, var(--play-fg) 10px) 0 0 / 20px 20px,
+    color-mix(in srgb, var(--play-bg) 70%, #020824);
+  position: relative;
+  overflow: hidden;
+}
+
+body.play-screen .qr-box .qr::before,
+body.play-screen .qr-box .qr::after {
+  content: "";
+  position: absolute;
+  width: 22%;
+  height: 22%;
+  border: 0.35vw solid var(--play-fg);
+  background: color-mix(in srgb, var(--play-bg) 70%, #020824);
+}
+
+body.play-screen .qr-box .qr::before {
+  top: 6%;
+  left: 6%;
+  box-shadow:
+    220% 0 0 0 color-mix(in srgb, var(--play-bg) 70%, #020824),
+    220% 0 0 0.35vw var(--play-fg),
+    0 220% 0 0 color-mix(in srgb, var(--play-bg) 70%, #020824),
+    0 220% 0 0.35vw var(--play-fg);
+}
+
+body.play-screen .qr-box .qr::after {
+  bottom: 6%;
+  right: 6%;
+}
+
+body.play-screen .qr-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+body.play-screen .copy {
+  text-transform: uppercase;
+  min-width: 0;
+}
+
+body.play-screen .copy-top {
+  font-size: clamp(20px, 1.6vw, 36px);
+  letter-spacing: 0.15em;
+  color: color-mix(in srgb, var(--play-secondary) 82%, var(--play-fg));
+  margin-bottom: 0.8vh;
+}
+
+body.play-screen .headline {
+  margin: 0;
+  font-size: clamp(48px, 4.4vw, 110px);
+  line-height: 0.95;
+  font-weight: 800;
+  color: var(--play-fg);
+  text-shadow:
+    0 0 10px rgba(0, 213, 220, 0.3),
+    0 0 30px rgba(0, 213, 220, 0.12);
+}
+
+body.play-screen .fine {
+  margin-top: 1.2vh;
+  font-size: clamp(18px, 1.3vw, 30px);
+  color: var(--play-secondary);
+  opacity: 0.9;
+  text-transform: none;
+}
+
+body.play-screen .play-survey-actions {
+  margin: 1rem 0 0;
+}
+
+body.play-screen .footer {
+  text-align: center;
+  padding-bottom: 1vh;
+  font-size: clamp(16px, 1vw, 24px);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(0, 213, 220, 0.76);
+}
+
+@media (max-aspect-ratio: 4/3) {
+  body.play-screen .bottom-inner {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    padding: 3vh 8vw 4vh;
+  }
+
+  body.play-screen .copy {
+    text-align: center;
+  }
 }
 
 .play-hit {
@@ -118,6 +345,11 @@ body.play-screen {
   color: transparent;
 }
 
+.play-hit:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
 .play-hit:focus-visible {
   outline: 2px solid var(--play-fg);
   outline-offset: -4px;
@@ -126,56 +358,17 @@ body.play-screen {
 .play-ui {
   position: relative;
   z-index: 2;
+  flex: 1;
+  min-width: 0;
+  min-height: 100dvh;
   pointer-events: none;
 }
 
-.play-ui a {
+.play-ui .play-interactive,
+.play-ui a.play-interactive,
+.play-ui button.play-interactive,
+.play-ui details.play-interactive {
   pointer-events: auto;
-}
-
-/* Result overlay */
-.play-result {
-  position: fixed;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: rgba(0, 0, 88, 0.92);
-  backdrop-filter: blur(8px);
-}
-
-.play-result[hidden] {
-  display: none !important;
-}
-
-.play-result-inner {
-  max-width: 36rem;
-  width: 100%;
-  pointer-events: auto;
-}
-
-.play-result-delta {
-  font-size: clamp(2rem, 6.5vw, 3.1rem);
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-}
-
-.play-result-elapsed {
-  font-size: clamp(1.2rem, 4vw, 1.55rem);
-  color: var(--play-secondary);
-  margin: 0 0 1.25rem;
-}
-
-.play-qr-wrap {
-  margin: 1rem 0;
-}
-
-.play-qr-wrap img {
-  max-width: min(100%, 320px);
-  height: auto;
-  border-radius: 8px;
 }
 
 .play-actions {
