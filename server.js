@@ -681,7 +681,7 @@ app.get("/api/qr", (req, res) => {
   }
   QRCode.toBuffer(
     text,
-    { width: 480, margin: 2, errorCorrectionLevel: "M", color: { dark: "#0f172a", light: "#ffffff" } },
+    { width: 480, margin: 2, errorCorrectionLevel: "M", color: { dark: "#08f6fd", light: "#0b1424" } },
     (err, buf) => {
       if (err || !buf) {
         console.error(err);
