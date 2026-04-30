@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree -L 3 -I 'node_modules' //wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/**)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game/public/**)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game/public/js/**)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/**)",
+      "Read(///wsl.localhost/ubuntu/mnt/**)",
+      "Read(///wsl.localhost/ubuntu//**)",
+      "Bash(git checkout *)",
+      "Bash(git config *)",
+      "Bash(node --check server.js)",
+      "Bash(node --check public/flappy/flappy.js)"
+    ]
+  }
+}

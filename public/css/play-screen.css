@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&display=swap");
+
 /* /play fullscreen screen — tweak palette under :root */
 
 :root {
@@ -30,7 +32,7 @@
   --muted: #8fb7c8;
 
   /* Timer / headline glows */
-  --time-shadow-a: rgba(134, 247, 255, 0.45);
+  --time-shadow-a: rgba(134, 247, 255, 0.881);
   --time-shadow-b: rgba(80, 231, 255, 0.3);
   --time-shadow-c: rgba(80, 231, 255, 0.12);
   --time-label-line: rgba(80, 231, 255, 0.9);
@@ -218,6 +220,7 @@ body {
 
 .time {
   margin: 0;
+  font-family: "Roboto", Helvetica, Arial, sans-serif;
   font-size: clamp(120px, 13vw, 280px);
   line-height: 0.9;
   font-weight: 800;
@@ -262,6 +265,7 @@ body {
 }
 
 .delta {
+  font-family: "Roboto", Helvetica, Arial, sans-serif;
   font-size: clamp(42px, 4vw, 88px);
   font-weight: 800;
   color: var(--delta);

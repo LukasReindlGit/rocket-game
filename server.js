@@ -18,6 +18,11 @@ if (!process.env.SURVEY_HMAC_SECRET) {
 
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
+/** Compact signed survey token (v2): 17-byte payload + 16-byte HMAC (URL shorter than JSON+v1). */
+const SURVEY_TOKEN_V2 = 2;
+const SURVEY_TOKEN_V2_PAYLOAD_LEN = 17;
+const SURVEY_TOKEN_V2_SIG_BYTES = 16;
+
 /** Must match game logic: TARGET 10.000 s → score = |elapsed − 10s| (rounded). */
 const GAME_TARGET_MS = 10000;
 
@@ -70,13 +75,57 @@ if (explicitPort && !Number.isFinite(listenPort)) {
 }
 const LISTEN_PORT_MAX = 3010;
 const ROOT = __dirname;
-const DATA_PATH = path.join(ROOT, "data", "leaderboard.csv");
+const DATA_PATH        = path.join(ROOT, "data", "leaderboard.csv");
+const FLAPPY_DATA_PATH = path.join(ROOT, "data", "flappy_leaderboard.csv");
 const BLOCKLIST_PATH = process.env.BLOCKLIST_PATH
   ? path.resolve(process.env.BLOCKLIST_PATH)
   : path.join(ROOT, "data", "blocklist.txt");
 const PUBLIC = path.join(ROOT, "public");
 const CONTENT = path.join(ROOT, "content");
 
+// ---------------------------------------------------------------------------
+// Flappy Bird leaderboard (separate CSV: submitted_at, nickname, score)
+// ---------------------------------------------------------------------------
+function ensureFlappyDataFile() {
+  const dir = path.dirname(FLAPPY_DATA_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(FLAPPY_DATA_PATH)) {
+    fs.writeFileSync(FLAPPY_DATA_PATH, "submitted_at,nickname,score\n", "utf8");
+  }
+}
+
+function readFlappyLeaderboard() {
+  ensureFlappyDataFile();
+  const raw   = fs.readFileSync(FLAPPY_DATA_PATH, "utf8");
+  const lines = raw.trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return [];
+  const header = parseCSVLine(lines[0]);
+  const iSub  = header.indexOf("submitted_at");
+  const iNick = header.indexOf("nickname");
+  const iSc   = header.indexOf("score");
+  const rows  = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols  = parseCSVLine(lines[i]);
+    const score = Number(cols[iSc]);
+    if (!Number.isFinite(score)) continue;
+    rows.push({
+      submitted_at: cols[iSub] ?? "",
+      nickname:     cols[iNick] ?? "",
+      score,
+    });
+  }
+  return rows.sort((a, b) => b.score - a.score);
+}
+
+function appendFlappyRow({ submitted_at, nickname, score }) {
+  ensureFlappyDataFile();
+  const line = [submitted_at, nickname, score].map(csvEscape).join(",") + "\n";
+  fs.appendFileSync(FLAPPY_DATA_PATH, line, "utf8");
+}
+
+// ---------------------------------------------------------------------------
+// Timing-game leaderboard helpers
+// ---------------------------------------------------------------------------
 function ensureDataFile() {
   const dir = path.dirname(DATA_PATH);
   if (!fs.existsSync(dir)) {
@@ -214,6 +263,39 @@ function migrateEmailColumnIfNeeded() {
 }
 
 /**
+ * @param {number} score_ms
+ * @param {number | null} elapsed_ms
+ * @returns {{ score_ms: number, elapsed_ms: number | null } | null}
+ */
+function normalizeVerifiedScores(score_ms, elapsed_ms) {
+  if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) return null;
+  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) return null;
+  if (elapsed_ms != null && Number.isFinite(elapsed_ms)) {
+    if (elapsed_ms < 500 || elapsed_ms > 120000) return null;
+    const expScore = expectedScoreMsFromElapsed(elapsed_ms);
+    if (Math.abs(Math.round(score_ms) - expScore) > 1) return null;
+  }
+  return {
+    score_ms: Math.round(score_ms),
+    elapsed_ms: elapsed_ms == null ? null : Math.round(elapsed_ms),
+  };
+}
+
+/**
+ * @param {Buffer} payloadBuf 17-byte v2 payload (exp_ms uint64 BE; score/elapsed uint32 BE)
+ * @returns {{ score_ms: number, elapsed_ms: number | null } | null}
+ */
+function parseSurveyTokenV2Payload(payloadBuf) {
+  if (payloadBuf.length !== SURVEY_TOKEN_V2_PAYLOAD_LEN) return null;
+  if (payloadBuf.readUInt8(0) !== SURVEY_TOKEN_V2) return null;
+  const exp = Number(payloadBuf.readBigUInt64BE(1));
+  const score_ms = payloadBuf.readUInt32BE(9);
+  const elapsed_ms = payloadBuf.readUInt32BE(13);
+  if (!Number.isFinite(exp) || Date.now() > exp) return null;
+  return normalizeVerifiedScores(score_ms, elapsed_ms);
+}
+
+/**
  * @returns {{ score_ms: number, elapsed_ms: number | null } | null}
  */
 function verifySurveyToken(tokenStr) {
@@ -222,7 +304,31 @@ function verifySurveyToken(tokenStr) {
   }
   const parts = tokenStr.split(".");
   if (parts.length !== 2) return null;
-  const [payloadB64, sig] = parts;
+  const [payloadB64, sigB64] = parts;
+  let payloadBuf;
+  try {
+    payloadBuf = Buffer.from(payloadB64, "base64url");
+  } catch {
+    return null;
+  }
+
+  if (payloadBuf.length === SURVEY_TOKEN_V2_PAYLOAD_LEN && payloadBuf.readUInt8(0) === SURVEY_TOKEN_V2) {
+    let sigBuf;
+    try {
+      sigBuf = Buffer.from(sigB64, "base64url");
+    } catch {
+      return null;
+    }
+    if (sigBuf.length !== SURVEY_TOKEN_V2_SIG_BYTES) return null;
+    const expectedSig = crypto
+      .createHmac("sha256", SURVEY_HMAC_SECRET)
+      .update(payloadBuf)
+      .digest()
+      .subarray(0, SURVEY_TOKEN_V2_SIG_BYTES);
+    if (!crypto.timingSafeEqual(sigBuf, expectedSig)) return null;
+    return parseSurveyTokenV2Payload(payloadBuf);
+  }
+
   const expectedSig = crypto
     .createHmac("sha256", SURVEY_HMAC_SECRET)
     .update(payloadB64)
@@ -230,7 +336,7 @@ function verifySurveyToken(tokenStr) {
   let sigBuf;
   let expBuf;
   try {
-    sigBuf = Buffer.from(sig, "base64url");
+    sigBuf = Buffer.from(sigB64, "base64url");
     expBuf = Buffer.from(expectedSig, "base64url");
   } catch {
     return null;
@@ -240,7 +346,7 @@ function verifySurveyToken(tokenStr) {
   }
   let payload;
   try {
-    payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8"));
+    payload = JSON.parse(payloadBuf.toString("utf8"));
   } catch {
     return null;
   }
@@ -248,32 +354,22 @@ function verifySurveyToken(tokenStr) {
   if (typeof payload.exp !== "number" || Date.now() > payload.exp) return null;
   const score_ms = Number(payload.s);
   const elapsed_ms = payload.e == null ? null : Number(payload.e);
-  if (!Number.isFinite(score_ms) || score_ms < 0 || score_ms > 120000) return null;
-  if (elapsed_ms != null && (!Number.isFinite(elapsed_ms) || elapsed_ms < 0)) return null;
-  if (elapsed_ms != null && Number.isFinite(elapsed_ms)) {
-    if (elapsed_ms < 500 || elapsed_ms > 120000) return null;
-    const exp = expectedScoreMsFromElapsed(elapsed_ms);
-    if (Math.abs(Math.round(score_ms) - exp) > 1) return null;
-  }
-  return { score_ms: Math.round(score_ms), elapsed_ms: elapsed_ms == null ? null : Math.round(elapsed_ms) };
+  return normalizeVerifiedScores(score_ms, elapsed_ms);
 }
 
 function mintSurveyToken(score_ms, elapsed_ms) {
-  const iat = Date.now();
-  const exp = iat + TOKEN_MAX_AGE_MS;
-  const payload = {
-    v: 1,
-    s: Math.round(score_ms),
-    e: elapsed_ms == null ? null : Math.round(elapsed_ms),
-    iat,
-    exp,
-  };
-  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const exp = Date.now() + TOKEN_MAX_AGE_MS;
+  const buf = Buffer.alloc(SURVEY_TOKEN_V2_PAYLOAD_LEN);
+  buf.writeUInt8(SURVEY_TOKEN_V2, 0);
+  buf.writeBigUInt64BE(BigInt(exp), 1);
+  buf.writeUInt32BE(Math.round(score_ms) >>> 0, 9);
+  buf.writeUInt32BE(Math.round(elapsed_ms) >>> 0, 13);
   const sig = crypto
     .createHmac("sha256", SURVEY_HMAC_SECRET)
-    .update(payloadB64)
-    .digest("base64url");
-  return `${payloadB64}.${sig}`;
+    .update(buf)
+    .digest()
+    .subarray(0, SURVEY_TOKEN_V2_SIG_BYTES);
+  return `${buf.toString("base64url")}.${sig.toString("base64url")}`;
 }
 
 function csvEscape(value) {
@@ -681,7 +777,7 @@ app.get("/api/qr", (req, res) => {
   }
   QRCode.toBuffer(
     text,
-    { width: 480, margin: 2, errorCorrectionLevel: "M", color: { dark: "#08f6fd", light: "#0b1424" } },
+    { width: 480, margin: 2, errorCorrectionLevel: "M", color: { dark: "#86f7ff", light: "#0b1424" } },
     (err, buf) => {
       if (err || !buf) {
         console.error(err);
@@ -695,7 +791,7 @@ app.get("/api/qr", (req, res) => {
 });
 
 app.get("/", (_req, res) => {
-  res.redirect(302, "/game");
+  res.sendFile(path.join(PUBLIC, "home.html"));
 });
 
 app.get("/game", (_req, res) => {
@@ -718,6 +814,10 @@ app.get("/play", (_req, res) => {
 /** Leaderboard kiosk (e.g. iPad); data from /api/leaderboard */
 app.get("/leaderboard", (_req, res) => {
   res.sendFile(path.join(PUBLIC, "leaderboard.html"));
+});
+
+app.get("/flappy", (_req, res) => {
+  res.sendFile(path.join(PUBLIC, "flappy", "index.html"));
 });
 
 /**
@@ -800,6 +900,56 @@ app.get("/api/leaderboard", (_req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Flappy Bird API
+// ---------------------------------------------------------------------------
+app.get("/api/flappy/leaderboard", (_req, res) => {
+  try {
+    const rows  = readFlappyLeaderboard();
+    const limit = Math.min(50, Math.max(1, Number(_req.query.limit) || 10));
+    const entries = rows.slice(0, limit).map((r) => ({
+      submitted_at: r.submitted_at,
+      nickname:     r.nickname,
+      score:        r.score,
+    }));
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ entries });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "leaderboard_read_failed" });
+  }
+});
+
+app.post("/api/flappy/submit", (req, res) => {
+  const body     = req.body || {};
+  const nickname = String(body.nickname ?? "").trim().slice(0, 30);
+  const score    = Number(body.score);
+
+  if (!nickname) {
+    return res.status(400).json({ error: "nickname_required" });
+  }
+  if (nickname.length > 30) {
+    return res.status(400).json({ error: "nickname_too_long" });
+  }
+  if (!Number.isFinite(score) || score < 0 || score > 10000) {
+    return res.status(400).json({ error: "invalid_score" });
+  }
+  if (fieldContainsBlockedContent(nickname)) {
+    return res.status(400).json({ error: "inappropriate_content" });
+  }
+
+  try {
+    appendFlappyRow({ submitted_at: new Date().toISOString(), nickname, score });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "write_failed" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Timing-game submit
+// ---------------------------------------------------------------------------
 app.post("/api/submit", (req, res) => {
   const body = req.body || {};
   const token = String(body.token ?? "").trim();
@@ -872,7 +1022,7 @@ function tryListen() {
     const vHost = process.env.VIRTUAL_HOST;
     const primaryHost = vHost ? vHost.split(",")[0].trim() : "";
     const base = primaryHost ? `https://${primaryHost}` : `http://localhost:${listenPort}`;
-    console.log(`Marketing Time Game ${base}/game  |  redesign ${base}/play  |  leaderboard ${base}/leaderboard`);
+    console.log(`Lobby Games  ${base}/  |  10s ${base}/game  |  Flappy Fivy ${base}/flappy  |  Leaderboard ${base}/leaderboard`);
   });
 }
 

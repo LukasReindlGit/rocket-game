@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Lobby Games — Salesfive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&family=Outfit:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/home.css" />
+  </head>
+  <body>
+    <div class="bg-mesh" aria-hidden="true">
+      <img src="/content/images/bg-mesh.svg" alt="" />
+    </div>
+
+    <div class="shell">
+      <header class="site-header">
+        <img
+          src="/content/logos/Salesfive-logo-rgb-full-white.svg"
+          alt="Salesfive"
+          width="200"
+          height="32"
+        />
+        <p class="header-tagline">Lobby Games</p>
+      </header>
+
+      <main class="games-grid">
+
+        <a class="game-card" href="/game" aria-label="Play 10 Seconds Challenge">
+          <div class="game-card__icon" aria-hidden="true">🚀</div>
+          <div class="game-card__body">
+            <h2 class="game-card__title">10 Seconds Challenge</h2>
+            <p class="game-card__desc">Press start, wait exactly 10 seconds, press stop — no peeking at the clock.</p>
+          </div>
+          <span class="game-card__cta">Play</span>
+        </a>
+
+        <a class="game-card" href="/flappy" aria-label="Play Flappy Bird">
+          <div class="game-card__icon" aria-hidden="true">🐦</div>
+          <div class="game-card__body">
+            <h2 class="game-card__title">Flappy Fivy</h2>
+            <p class="game-card__desc">Tap to flap. Dodge the pipes. Beat the leaderboard.</p>
+          </div>
+          <span class="game-card__cta">Play</span>
+        </a>
+
+      </main>
+
+      <footer class="site-footer">
+        <a href="/leaderboard" class="footer-link">Leaderboard display</a>
+      </footer>
+    </div>
+  </body>
+</html>

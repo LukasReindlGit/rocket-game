@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Flappy Fivy — Lobby Games</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700&family=Outfit:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/flappy/flappy.css" />
+  </head>
+  <body>
+    <div class="shell">
+
+      <!-- ── Game canvas + overlays ──────────────────────────────── -->
+      <div class="game-area">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Start screen -->
+        <div id="screen-start" class="screen screen--active">
+          <div class="screen__content">
+            <div class="screen__bird-preview" aria-hidden="true">
+              <img src="/flappy/assets/bird-up.svg" alt="" width="180" height="153" />
+            </div>
+            <h1 class="screen__title">Flappy Fivy</h1>
+            <p class="screen__sub">Tap anywhere to start flying</p>
+            <p class="screen__hint">Tap · click · spacebar</p>
+            <a href="/" class="back-link">← All Games</a>
+          </div>
+        </div>
+
+        <!-- Game-over screen -->
+        <div id="screen-gameover" class="screen" hidden>
+          <div class="screen__content">
+            <h2 class="screen__title">Game Over</h2>
+            <p class="screen__score-label">Your score</p>
+            <p class="screen__score" id="final-score">0</p>
+
+            <div id="submit-section" class="submit-section">
+              <p class="submit-section__label">Save your score</p>
+              <div class="submit-section__row">
+                <input type="text" id="nickname-input" class="nickname-input"
+                  placeholder="Nickname" maxlength="30"
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                <button type="button" id="btn-submit" class="btn btn--primary">Save</button>
+              </div>
+              <p class="submit-error" id="submit-error" hidden></p>
+            </div>
+
+            <div id="saved-notice" class="saved-notice" hidden>
+              Score saved — check the leaderboard →
+            </div>
+
+            <div class="gameover-actions">
+              <button type="button" id="btn-play-again" class="btn btn--primary">Play Again</button>
+              <a href="/" class="btn btn--ghost">← All Games</a>
+            </div>
+            <p class="screen__hint gameover-hint">or tap anywhere to play again</p>
+          </div>
+        </div>
+
+        <div id="hud-score" class="hud-score" hidden>0</div>
+      </div>
+
+      <!-- ── Leaderboard sidebar ─────────────────────────────────── -->
+      <aside class="lb-panel" aria-label="Flappy Fivy leaderboard">
+        <div class="lb-panel__header">
+          <h2 class="lb-panel__title">Top Scores</h2>
+          <p class="lb-panel__game">Flappy Fivy</p>
+        </div>
+        <ol id="sidebar-lb-list" class="sidebar-lb-list">
+          <li class="sidebar-lb-empty">No scores yet — be first!</li>
+        </ol>
+      </aside>
+
+    </div>
+    <script src="/flappy/flappy.js"></script>
+  </body>
+</html>
