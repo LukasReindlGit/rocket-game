@@ -905,15 +905,22 @@ app.get("/api/leaderboard", (_req, res) => {
 // ---------------------------------------------------------------------------
 app.get("/api/flappy/leaderboard", (_req, res) => {
   try {
-    const rows  = readFlappyLeaderboard();
-    const limit = Math.min(50, Math.max(1, Number(_req.query.limit) || 10));
-    const entries = rows.slice(0, limit).map((r) => ({
+    let period = String(_req.query.period ?? "all").toLowerCase();
+    if (period !== "day" && period !== "week") period = "all";
+
+    const rows   = readFlappyLeaderboard(); // sorted by score desc
+    const scoped = period === "all"
+      ? rows
+      : filterLeaderboardByPeriod(rows, /** @type {'day'|'week'} */ (period));
+
+    const limit   = Math.min(50, Math.max(1, Number(_req.query.limit) || 10));
+    const entries = scoped.slice(0, limit).map((r) => ({
       submitted_at: r.submitted_at,
       nickname:     r.nickname,
       score:        r.score,
     }));
     res.setHeader("Cache-Control", "no-store");
-    res.json({ entries });
+    res.json({ entries, period });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "leaderboard_read_failed" });

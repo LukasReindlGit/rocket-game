@@ -45,17 +45,18 @@ let skyline = [];
 // ---------------------------------------------------------------------------
 // DOM refs
 // ---------------------------------------------------------------------------
-const screenStart    = document.getElementById("screen-start");
-const screenGameover = document.getElementById("screen-gameover");
-const hudScore       = document.getElementById("hud-score");
-const elFinalScore   = document.getElementById("final-score");
-const nicknameInput  = document.getElementById("nickname-input");
-const btnSubmit      = document.getElementById("btn-submit");
-const btnPlayAgain   = document.getElementById("btn-play-again");
-const submitSection  = document.getElementById("submit-section");
-const submitError    = document.getElementById("submit-error");
-const savedNotice    = document.getElementById("saved-notice");
-const sidebarList    = document.getElementById("sidebar-lb-list");
+const screenStart       = document.getElementById("screen-start");
+const screenGameover    = document.getElementById("screen-gameover");
+const hudScore          = document.getElementById("hud-score");
+const elFinalScore      = document.getElementById("final-score");
+const nicknameInput     = document.getElementById("nickname-input");
+const btnSubmit         = document.getElementById("btn-submit");
+const btnPlayAgain      = document.getElementById("btn-play-again");
+const submitSection     = document.getElementById("submit-section");
+const submitError       = document.getElementById("submit-error");
+const savedNotice       = document.getElementById("saved-notice");
+const elReturnCountdown = document.getElementById("return-countdown");
+const elCountdownSecs   = document.getElementById("countdown-secs");
 
 // ---------------------------------------------------------------------------
 // Asset loading
@@ -156,6 +157,7 @@ function resetGame() {
 }
 
 function startGame() {
+  clearGameOverCountdown();
   resetGame();
   gameState = "playing";
 
@@ -173,6 +175,37 @@ function startGame() {
   animId = requestAnimationFrame(loop);
 }
 
+// ---------------------------------------------------------------------------
+// Game-over countdown (auto-return to title after 60 s)
+// ---------------------------------------------------------------------------
+let gameOverTimerId = null;
+
+function startGameOverCountdown() {
+  clearGameOverCountdown();
+  let secs = 60;
+  if (elCountdownSecs) elCountdownSecs.textContent = String(secs);
+  if (elReturnCountdown) elReturnCountdown.hidden = false;
+  gameOverTimerId = setInterval(() => {
+    secs--;
+    if (elCountdownSecs) elCountdownSecs.textContent = String(secs);
+    if (secs <= 0) returnToTitle();
+  }, 1000);
+}
+
+function clearGameOverCountdown() {
+  clearInterval(gameOverTimerId);
+  gameOverTimerId = null;
+  if (elReturnCountdown) elReturnCountdown.hidden = true;
+}
+
+function returnToTitle() {
+  clearGameOverCountdown();
+  gameState = "idle";
+  screenGameover.hidden = true;
+  screenStart.hidden    = false;
+  requestAnimationFrame(drawIdleFrame);
+}
+
 function endGame() {
   gameState = "dead";
   cancelAnimationFrame(animId);
@@ -188,7 +221,8 @@ function endGame() {
   screenGameover.hidden = false;
   nicknameInput.focus();
 
-  pollSidebarLb();
+  lbSidebar.poll(null);
+  startGameOverCountdown();
 }
 
 // ---------------------------------------------------------------------------
@@ -571,41 +605,13 @@ function drawIdleFrame() {
 }
 
 // ---------------------------------------------------------------------------
-// Sidebar leaderboard
+// Sidebar leaderboard (powered by shared LbSidebar component)
 // ---------------------------------------------------------------------------
-let lbPollTimer = null;
-
-function startLbPolling() {
-  pollSidebarLb();
-  clearInterval(lbPollTimer);
-  lbPollTimer = setInterval(pollSidebarLb, 12000);
-}
-
-async function pollSidebarLb(highlightNick = null) {
-  try {
-    const res = await fetch("/api/flappy/leaderboard?limit=10");
-    if (!res.ok) return;
-    const { entries } = await res.json();
-    renderSidebarLb(entries, highlightNick);
-  } catch { /* silently ignore network errors */ }
-}
-
-function renderSidebarLb(entries, highlightNick = null) {
-  if (!entries || entries.length === 0) {
-    sidebarList.innerHTML = '<li class="sidebar-lb-empty">No scores yet — be first!</li>';
-    return;
-  }
-  sidebarList.innerHTML = "";
-  entries.forEach((e, i) => {
-    const li = document.createElement("li");
-    if (highlightNick && e.nickname === highlightNick) li.classList.add("lb-you");
-    li.innerHTML =
-      `<span class="lb-sr">${i + 1}</span>` +
-      `<span class="lb-sn">${escapeHtml(e.nickname)}</span>` +
-      `<span class="lb-ss">${e.score}</span>`;
-    sidebarList.appendChild(li);
-  });
-}
+const lbSidebar = new LbSidebar({
+  listId:      "sidebar-lb-list",
+  endpoint:    "/api/flappy/leaderboard",
+  formatScore: (e) => String(e.score),
+});
 
 // ---------------------------------------------------------------------------
 // Score submission
@@ -642,7 +648,8 @@ btnSubmit.addEventListener("click", async () => {
     await submitScore(nickname);
     submitSection.hidden = true;
     savedNotice.hidden   = false;
-    pollSidebarLb(nickname);
+    clearGameOverCountdown();
+    lbSidebar.poll(nickname);
   } catch (err) {
     showSubmitError(humaniseError(err.message));
     btnSubmit.disabled    = false;
@@ -681,4 +688,4 @@ preloadAssets().then(() => {
   requestAnimationFrame(drawIdleFrame);
 });
 
-startLbPolling();
+lbSidebar.start();

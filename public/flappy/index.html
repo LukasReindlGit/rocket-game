@@ -18,8 +18,8 @@
         <canvas id="game-canvas"></canvas>
 
         <!-- Start screen -->
-        <div id="screen-start" class="screen screen--active">
-          <div class="screen__content">
+        <div id="screen-start" class="screen screen--start screen--active">
+          <div class="screen__content screen__content--card">
             <div class="screen__bird-preview" aria-hidden="true">
               <img src="/flappy/assets/bird-up.svg" alt="" width="180" height="153" />
             </div>
@@ -31,8 +31,11 @@
         </div>
 
         <!-- Game-over screen -->
-        <div id="screen-gameover" class="screen" hidden>
+        <div id="screen-gameover" class="screen screen--gameover" hidden>
           <div class="screen__content">
+            <div class="screen__bird-preview" aria-hidden="true">
+              <img src="/flappy/assets/bird-up.svg" alt="" width="80" height="68" />
+            </div>
             <h2 class="screen__title">Game Over</h2>
             <p class="screen__score-label">Your score</p>
             <p class="screen__score" id="final-score">0</p>
@@ -57,6 +60,9 @@
               <a href="/" class="btn btn--ghost">← All Games</a>
             </div>
             <p class="screen__hint gameover-hint">or tap anywhere to play again</p>
+            <p class="return-countdown" id="return-countdown" hidden>
+              Returning to title in <span id="countdown-secs">60</span>s
+            </p>
           </div>
         </div>
 
@@ -68,6 +74,11 @@
         <div class="lb-panel__header">
           <h2 class="lb-panel__title">Top Scores</h2>
           <p class="lb-panel__game">Flappy Fivy</p>
+          <div class="lb-tabs" role="group" aria-label="Leaderboard period">
+            <button class="lb-tab lb-tab--active" data-lb-period="all">All</button>
+            <button class="lb-tab" data-lb-period="week">Week</button>
+            <button class="lb-tab" data-lb-period="day">Today</button>
+          </div>
         </div>
         <ol id="sidebar-lb-list" class="sidebar-lb-list">
           <li class="sidebar-lb-empty">No scores yet — be first!</li>
@@ -75,6 +86,7 @@
       </aside>
 
     </div>
+    <script src="/js/lb-sidebar.js"></script>
     <script src="/flappy/flappy.js"></script>
   </body>
 </html>

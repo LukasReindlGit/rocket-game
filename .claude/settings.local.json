@@ -11,7 +11,12 @@
       "Bash(git checkout *)",
       "Bash(git config *)",
       "Bash(node --check server.js)",
-      "Bash(node --check public/flappy/flappy.js)"
+      "Bash(node --check public/flappy/flappy.js)",
+      "Read(//mnt/wsl/instances/ubuntu/home/lukas/Documents/Projects/marketing_time_game/**)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game/**)",
+      "Bash(echo \"exit: $?\")",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game/public/flappy/**)",
+      "Read(///wsl.localhost/ubuntu/home/lukas/Documents/Projects/marketing_time_game/content/**)"
     ]
   }
 }

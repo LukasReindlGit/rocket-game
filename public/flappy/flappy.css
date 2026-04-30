@@ -52,13 +52,24 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--overlay-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   z-index: 10;
 }
 .screen[hidden] { display: none; }
 .screen--active { display: flex; }
+
+/* Start screen: transparent so the animated night city shows through */
+.screen--start {
+  background: rgba(2, 5, 20, 0.30);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Game-over screen: opaque for readability while filling in the form */
+.screen--gameover {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 
 .screen__content {
   display: flex;
@@ -69,6 +80,19 @@ html, body {
   max-width: 440px;
   width: 100%;
   text-align: center;
+}
+
+/* Card treatment for start screen content (glass panel over the city) */
+.screen__content--card {
+  background: rgba(2, 8, 28, 0.72);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  border-radius: 20px;
+  box-shadow:
+    0 0 48px rgba(0, 212, 255, 0.10),
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    inset 0 0 24px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .screen__bird-preview img {
@@ -137,6 +161,15 @@ html, body {
   width: 100%;
 }
 .gameover-hint { margin-top: -4px; }
+
+/* ── Return countdown ───────────────────────────────────────────── */
+.return-countdown {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin-top: -4px;
+}
+.return-countdown[hidden] { display: none; }
 
 /* ── Buttons ────────────────────────────────────────────────────── */
 .btn {
@@ -224,6 +257,38 @@ html, body {
   font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 3px;
+}
+
+/* ── Period tabs ────────────────────────────────────────────────── */
+.lb-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.lb-tab {
+  flex: 1;
+  padding: 5px 4px;
+  background: transparent;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: "Outfit", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-tab:hover {
+  background: rgba(0, 212, 255, 0.07);
+  color: var(--text-primary);
+}
+.lb-tab--active {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.5);
+  color: var(--neon-cyan);
 }
 
 .sidebar-lb-list {
